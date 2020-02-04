@@ -5,8 +5,12 @@ import { ApiDocumenterCommandLine } from './ApiDocumenterCommandLine';
 import { BaseAction } from './BaseAction';
 import { MarkdownDocumenter } from '../documenters/MarkdownDocumenter';
 import { ApiModel } from '@microsoft/api-extractor-model';
+import { CommandLineFlagParameter } from '@microsoft/ts-command-line';
+import { GrafanaMarkdownDocumenter } from '../documenters/GrafanaMarkdownDocumenter';
 
 export class MarkdownAction extends BaseAction {
+  private _grafanaParameter: CommandLineFlagParameter;
+
   public constructor(parser: ApiDocumenterCommandLine) {
     super({
       actionName: 'markdown',
@@ -16,8 +20,21 @@ export class MarkdownAction extends BaseAction {
     });
   }
 
+  protected onDefineParameters(): void {
+    super.onDefineParameters();
+    this._grafanaParameter = this.defineFlagParameter({
+      parameterLongName: '--grafana',
+      description: `Enables some additional features specific to Grafana.com documentation`
+    });
+  }
+
   protected onExecute(): Promise<void> { // override
     const apiModel: ApiModel = this.buildApiModel();
+
+    if (this._grafanaParameter.value) {
+      new GrafanaMarkdownDocumenter(this.outputFolder, apiModel).generateFiles();
+      return Promise.resolve();
+    }
 
     const markdownDocumenter: MarkdownDocumenter = new MarkdownDocumenter(apiModel, undefined);
     markdownDocumenter.generateFiles(this.outputFolder);

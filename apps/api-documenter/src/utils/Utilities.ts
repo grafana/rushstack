@@ -8,6 +8,10 @@ import {
 
 export class Utilities {
   private static readonly _badFilenameCharsRegExp: RegExp = /[^a-z0-9_\-\.]/ig;
+  
+  public static getImportName(name: string) {
+    return name.replace(Utilities._badFilenameCharsRegExp, '');
+  }
   /**
    * Generates a concise signature for a function.  Example: "getArea(width, height)"
    */
