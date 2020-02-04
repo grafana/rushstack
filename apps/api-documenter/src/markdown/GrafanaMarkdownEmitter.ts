@@ -9,8 +9,7 @@ export class GrafanaMarkdownEmitter extends CustomMarkdownEmitter {
         const writer: IndentedWriter = context.writer;
 
         if (this.isGrafanaNode(docNode)) {
-            return docNode.writeTo(writer, node => 
-                super.writeNode(node, context, docNodeSiblings));
+            return docNode.writeTo(writer);
         }
 
         super.writeNode(docNode, context, docNodeSiblings);

@@ -6,8 +6,6 @@ export interface IGrafanaDocNodeParameters extends IDocNodeParameters {
     apiItem: ApiItem
 }
 
-export type StandardWriter = (node: DocNode) => void;
-
 export abstract class GrafanaDocNode extends DocNode {
-    abstract writeTo(writer: IndentedWriter, standardWriter: StandardWriter);
+    abstract writeTo(writer: IndentedWriter);
 }

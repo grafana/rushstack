@@ -1,32 +1,41 @@
-import { GrafanaDocNode, IGrafanaDocNodeParameters, StandardWriter } from "./GrafanaDocNode";
+import { GrafanaDocNode, IGrafanaDocNodeParameters } from "./GrafanaDocNode";
 import { IndentedWriter } from "../../utils/IndentedWriter";
 import { ApiItem, ApiItemKind } from "@microsoft/api-extractor-model";
 
-export class GrafanaDocPageMeta extends GrafanaDocNode {
+export interface IDocFrontMatterParameters extends IGrafanaDocNodeParameters {
+  draft: boolean
+};
+
+export class DocFrontMatter extends GrafanaDocNode {
   private static tag: string = "+++";
   private static type: string = "docs";
 
-  public readonly title: string;
-  public readonly keywords: string[];
+  private readonly title: string;
+  private readonly keywords: string[];
+  private readonly draft: boolean;
 
-  public constructor(parameters: IGrafanaDocNodeParameters) {
+  public constructor(parameters: IDocFrontMatterParameters) {
     super(parameters);
     this.title = titleFromItem(parameters.apiItem);
     this.keywords = keywordsFromItem(parameters.apiItem);
+    this.draft = parameters.draft || false;
   }
 
   public get kind(): string {
-    return GrafanaDocPageMeta.name;
+    return DocFrontMatter.name;
   }
 
-  public writeTo(writer: IndentedWriter, standardWriter: StandardWriter): void {
+  public writeTo(writer: IndentedWriter): void {
     const keywords = this.keywords.map(kw => `"${kw}"`).join(",");
 
-    writer.writeLine(GrafanaDocPageMeta.tag);
+    writer.writeLine(DocFrontMatter.tag);
     writer.writeLine(`title = "${this.title}"`);
     writer.writeLine(`keywords = [${keywords}]`);
-    writer.writeLine(`type = "${GrafanaDocPageMeta.type}"`);
-    writer.writeLine(GrafanaDocPageMeta.tag);
+    writer.writeLine(`type = "${DocFrontMatter.type}"`);
+    if(this.draft) {
+      writer.writeLine(`draft = ${this.draft}`);
+    }
+    writer.writeLine(DocFrontMatter.tag);
   }
 }
 

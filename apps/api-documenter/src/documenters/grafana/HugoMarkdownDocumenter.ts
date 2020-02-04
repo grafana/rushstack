@@ -14,7 +14,6 @@ import {
   DocNodeKind,
   DocParagraph,
   DocCodeSpan,
-  DocFencedCode,
   StandardTags,
   DocBlock,
   DocComment
@@ -35,38 +34,64 @@ import {
   Excerpt,
   ApiParameterListMixin,
   ApiReturnTypeMixin,
-  ApiDeclaredItem,
   ApiNamespace
 } from '@microsoft/api-extractor-model';
 
-import { CustomDocNodes } from '../nodes/CustomDocNodeKind';
-import { DocHeading } from '../nodes/DocHeading';
-import { DocTable } from '../nodes/DocTable';
-import { DocEmphasisSpan } from '../nodes/DocEmphasisSpan';
-import { DocTableRow } from '../nodes/DocTableRow';
-import { DocTableCell } from '../nodes/DocTableCell';
-import { Utilities } from '../utils/Utilities';
-import { GrafanaMarkdownEmitter } from '../markdown/GrafanaMarkdownEmitter';
-import { GrafanaDocPageMeta } from '../nodes/grafana/GrafanaDocPageMeta';
-import { GrafanaDocHeading } from '../nodes/grafana/GrafanaDocHeading';
-import { GrafanaDocWarning } from '../nodes/grafana/GrafanaDocWarning';
-import { GrafanaDocPageTitle } from '../nodes/grafana/GrafanaDocPageTitle';
+import { CustomDocNodes } from '../../nodes/CustomDocNodeKind';
+import { DocHeading } from '../../nodes/DocHeading';
+import { DocTable } from '../../nodes/DocTable';
+import { DocEmphasisSpan } from '../../nodes/DocEmphasisSpan';
+import { DocTableRow } from '../../nodes/DocTableRow';
+import { DocTableCell } from '../../nodes/DocTableCell';
+import { Utilities } from '../../utils/Utilities';
+import { GrafanaMarkdownEmitter } from '../../markdown/GrafanaMarkdownEmitter';
+import { DocFrontMatter } from '../../nodes/grafana/DocFrontMatter';
+import { PageTitleAppender } from './PageTitleAppender';
+import { HeadingAppender } from './HeadingAppender';
+import { WarningAppender } from './WarningAppender';
+import { ImportAppender } from './ImportAppender';
+import { SignatureAppender } from './SignatureAppender';
+import { SummaryAppender } from './SummaryAppender';
+
+export interface HugoMarkdownDocumenterParameters {
+  draft: boolean;
+  model: ApiModel;
+  output: string
+}
 
 /**
  * Renders API documentation in the Markdown file format.
  * For more info:  https://en.wikipedia.org/wiki/Markdown
  */
-export class GrafanaMarkdownDocumenter {
+export class HugoMarkdownDocumenter {
   private readonly _apiModel: ApiModel;
   private readonly _tsdocConfiguration: TSDocConfiguration;
   private readonly _markdownEmitter: GrafanaMarkdownEmitter;
   private readonly _outputFolder: string;
+  private readonly _generateDraft: boolean;
 
-  public constructor(outputFolder: string, apiModel: ApiModel) {
-    this._apiModel = apiModel;
-    this._tsdocConfiguration = CustomDocNodes.configuration;
+  private readonly _pageTitleAppender: PageTitleAppender;
+  private readonly _headingAppender: HeadingAppender;
+  private readonly _warningAppender: WarningAppender;
+  private readonly _importAppender: ImportAppender;
+  private readonly _signatureAppender: SignatureAppender;
+  private readonly _summaryAppender: SummaryAppender;
+
+  public constructor(parameters: HugoMarkdownDocumenterParameters) {
+    const { configuration } = CustomDocNodes;
+
+    this._apiModel = parameters.model;
+    this._outputFolder = parameters.output;
+    this._generateDraft = parameters.draft;
+    this._tsdocConfiguration = configuration;
+
     this._markdownEmitter = new GrafanaMarkdownEmitter(this._apiModel);
-    this._outputFolder = outputFolder;
+    this._pageTitleAppender = new PageTitleAppender(configuration);
+    this._headingAppender = new HeadingAppender(configuration);
+    this._warningAppender = new WarningAppender(configuration);
+    this._importAppender = new ImportAppender(configuration);
+    this._signatureAppender = new SignatureAppender(configuration);
+    this._summaryAppender = new SummaryAppender();
   }
 
   public generateFiles(): void {
@@ -76,11 +101,12 @@ export class GrafanaMarkdownDocumenter {
 
   private _writeApiItemPage(apiItem: ApiItem): void {
     const configuration = this._tsdocConfiguration;
+    const draft = this._generateDraft;
 
     const output: DocSection = new DocSection({ configuration });
-    output.appendNode(new GrafanaDocPageMeta({ configuration, apiItem}));
-    output.appendNode(new GrafanaDocPageTitle({ configuration, apiItem }));
-    
+    output.appendNode(new DocFrontMatter({ configuration, apiItem, draft }));
+
+    this._pageTitleAppender.append(output, apiItem);
     this._writeApiItemContent(output, apiItem);
 
     const filename: string = path.join(this._outputFolder, this._getFilenameForApiItem(apiItem));
@@ -92,7 +118,7 @@ export class GrafanaMarkdownDocumenter {
         return this._getLinkFilenameForApiItem(apiItemForFilename);
       }
     });
-    
+
     FileSystem.writeFile(filename, stringBuilder.toString(), {
       ensureFolderExists: true,
       convertLineEndings: NewlineKind.CrLf
@@ -100,38 +126,13 @@ export class GrafanaMarkdownDocumenter {
   }
 
   private _writeApiItemContent(output: DocSection, apiItem: ApiItem, appendImport: boolean = false): void {
-    const configuration: TSDocConfiguration = this._tsdocConfiguration;
-    output.appendNode(new GrafanaDocWarning({ configuration, apiItem }));
-    output.appendNode(new GrafanaDocHeading({configuration, apiItem }));
+    this._warningAppender.append(output, apiItem);
+    this._headingAppender.append(output, apiItem);
+    this._summaryAppender.append(output, apiItem);
+    this._signatureAppender.append(output, apiItem);
 
-    if (apiItem instanceof ApiDocumentedItem) {
-      const tsdocComment: DocComment | undefined = apiItem.tsdocComment;
-
-      if (tsdocComment) {
-        this._appendSection(output, tsdocComment.summarySection);
-      }
-    }
-
-    if (apiItem instanceof ApiDeclaredItem) {
-      if (apiItem.excerpt.text.length > 0) {
-        output.appendNode(this._writeBoldText(configuration, 'Signature'));
-        output.appendNode(new DocFencedCode({ 
-            configuration, 
-            code: apiItem.getExcerptWithModifiers(), 
-            language: 'typescript' 
-        }));
-      }
-
-      const importCode = appendImport && this._formatImport(apiItem);
-
-        if (importCode) {
-            output.appendNode(this._writeBoldText(configuration, 'Import'));
-            output.appendNode(new DocFencedCode({ 
-              configuration, 
-              code: importCode, 
-              language: 'typescript' 
-            }));
-        }
+    if (appendImport) {
+      this._importAppender.append(output, apiItem);
     }
 
     let appendRemarks: boolean = true;
@@ -725,7 +726,7 @@ export class GrafanaMarkdownDocumenter {
         const link = Utilities.getSafeFilenameForName(apiItem.displayName);
         return `./${link}`;
       }
-    
+
       default:
         return this._getLinkFilenameForApiItem(apiItem)
     }
@@ -865,18 +866,5 @@ export class GrafanaMarkdownDocumenter {
   private _deleteOldOutputFiles(outputFolder: string): void {
     console.log('Deleting old output from ' + outputFolder);
     FileSystem.ensureEmptyFolder(outputFolder);
-  }
-
-  private _formatImport(apiItem: ApiDeclaredItem): string | null {
-    const pkg = apiItem.getAssociatedPackage();
-    if (!pkg) {
-      return null;
-    }
-    const toImport = apiItem.getScopedNameWithinPackage();
-    if (toImport.indexOf('.') < 0) {
-      return `import { ${Utilities.getImportName(toImport)} } from '${pkg.displayName}';`
-    }
-    const parts = toImport.split('.');
-    return `import { ${Utilities.getImportName(parts[0])} } from '${pkg.displayName}';\nconst { ${Utilities.getImportName(parts[1])} } = ${Utilities.getImportName(parts[0])};`;
   }
 }

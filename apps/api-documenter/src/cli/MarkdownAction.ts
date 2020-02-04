@@ -6,10 +6,11 @@ import { BaseAction } from './BaseAction';
 import { MarkdownDocumenter } from '../documenters/MarkdownDocumenter';
 import { ApiModel } from '@microsoft/api-extractor-model';
 import { CommandLineFlagParameter } from '@microsoft/ts-command-line';
-import { GrafanaMarkdownDocumenter } from '../documenters/GrafanaMarkdownDocumenter';
+import { HugoMarkdownDocumenter } from '../documenters/grafana/HugoMarkdownDocumenter';
 
 export class MarkdownAction extends BaseAction {
-  private _grafanaParameter: CommandLineFlagParameter;
+  private _hugoParameter: CommandLineFlagParameter;
+  private _hugoDraftParameter: CommandLineFlagParameter;
 
   public constructor(parser: ApiDocumenterCommandLine) {
     super({
@@ -22,17 +23,27 @@ export class MarkdownAction extends BaseAction {
 
   protected onDefineParameters(): void {
     super.onDefineParameters();
-    this._grafanaParameter = this.defineFlagParameter({
-      parameterLongName: '--grafana',
-      description: `Enables some additional features specific to Grafana.com documentation`
+    this._hugoParameter = this.defineFlagParameter({
+      parameterLongName: '--hugo',
+      description: `Enables some additional features specific to Grafana.com documentation.`
+    });
+    this._hugoDraftParameter = this.defineFlagParameter({
+      parameterLongName: '--draft',
+      description: `The documentation generated will be marked as draft.`
     });
   }
 
   protected onExecute(): Promise<void> { // override
     const apiModel: ApiModel = this.buildApiModel();
 
-    if (this._grafanaParameter.value) {
-      new GrafanaMarkdownDocumenter(this.outputFolder, apiModel).generateFiles();
+    if (this._hugoParameter.value) {
+      const markdownDocumenter = new HugoMarkdownDocumenter({
+        model: apiModel,
+        draft: this._hugoDraftParameter.value || false,
+        output: this.outputFolder
+      });
+
+      markdownDocumenter.generateFiles();
       return Promise.resolve();
     }
 
