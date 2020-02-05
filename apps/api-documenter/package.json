@@ -1,10 +1,10 @@
 {
-  "name": "@microsoft/api-documenter",
-  "version": "7.7.12",
+  "name": "@grafana/api-documenter",
+  "version": "0.9.0",
   "description": "Read JSON files from api-extractor, generate documentation pages",
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/rushstack/tree/master/apps/api-documenter"
+    "url": "https://github.com/grafana/rushstack/tree/master/apps/api-documenter"
   },
   "homepage": "https://api-extractor.com/",
   "license": "MIT",
