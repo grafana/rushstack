@@ -53,7 +53,7 @@ import { ImportAppender } from './ImportAppender';
 import { SignatureAppender } from './SignatureAppender';
 import { SummaryAppender } from './SummaryAppender';
 
-export interface HugoMarkdownDocumenterParameters {
+export interface IHugoMarkdownDocumenterParameters {
   draft: boolean;
   model: ApiModel;
   output: string
@@ -77,7 +77,7 @@ export class HugoMarkdownDocumenter {
   private readonly _signatureAppender: SignatureAppender;
   private readonly _summaryAppender: SummaryAppender;
 
-  public constructor(parameters: HugoMarkdownDocumenterParameters) {
+  public constructor(parameters: IHugoMarkdownDocumenterParameters) {
     const { configuration } = CustomDocNodes;
 
     this._apiModel = parameters.model;
@@ -100,8 +100,8 @@ export class HugoMarkdownDocumenter {
   }
 
   private _writeApiItemPage(apiItem: ApiItem): void {
-    const configuration = this._tsdocConfiguration;
-    const draft = this._generateDraft;
+    const configuration: TSDocConfiguration = this._tsdocConfiguration;
+    const draft: boolean = this._generateDraft;
 
     const output: DocSection = new DocSection({ configuration });
     output.appendNode(new DocFrontMatter({ configuration, apiItem, draft }));
@@ -696,26 +696,25 @@ export class HugoMarkdownDocumenter {
   }
 
 
-  private _getUrlDestination(apiItem: ApiItem) {
+  private _getUrlDestination(apiItem: ApiItem): string {
     switch (apiItem.kind) {
       case ApiItemKind.Method:
       case ApiItemKind.MethodSignature: {
-        const link = Utilities.getSafeFilenameForName(apiItem.displayName);
+        const link: string = Utilities.getSafeFilenameForName(apiItem.displayName);
         return `#${link}-method`;
       }
 
       case ApiItemKind.Package: {
-        const signature = PackageName.getUnscopedName(apiItem.displayName);
-        const link = Utilities.getSafeFilenameForName(signature);
+        const signature: string = PackageName.getUnscopedName(apiItem.displayName);
+        const link: string = Utilities.getSafeFilenameForName(signature);
         return `./${link}`;
       }
 
       case ApiItemKind.Property: {
-        const link = Utilities.getSafeFilenameForName(apiItem.displayName);
+        const link: string = Utilities.getSafeFilenameForName(apiItem.displayName);
         return `#${link}-property`;
       }
 
-      case ApiItemKind.Method:
       case ApiItemKind.TypeAlias:
       case ApiItemKind.Enum:
       case ApiItemKind.Variable:
@@ -723,7 +722,7 @@ export class HugoMarkdownDocumenter {
       case ApiItemKind.Interface:
       case ApiItemKind.Namespace:
       case ApiItemKind.Class: {
-        const link = Utilities.getSafeFilenameForName(apiItem.displayName);
+        const link: string = Utilities.getSafeFilenameForName(apiItem.displayName);
         return `./${link}`;
       }
 
@@ -826,8 +825,8 @@ export class HugoMarkdownDocumenter {
     }
 
     if (apiItem.kind === ApiItemKind.Package) {
-      const unscopedName = PackageName.getUnscopedName(apiItem.displayName);
-      const baseName = Utilities.getSafeFilenameForName(unscopedName);
+      const unscopedName: string = PackageName.getUnscopedName(apiItem.displayName);
+      const baseName: string = Utilities.getSafeFilenameForName(unscopedName);
 
       return `${baseName}/index.md`;
     }

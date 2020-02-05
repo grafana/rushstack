@@ -11,13 +11,13 @@ const deprecated: string = '';
 export class WarningAppender {
   private readonly _configuration: TSDocConfiguration;
 
-  constructor(configuration: TSDocConfiguration) {
+  public constructor(configuration: TSDocConfiguration) {
     this._configuration = configuration;
   }
 
-  append(output: DocSection, apiItem: ApiItem): void {
-    const warning = warningForItem(apiItem);
-    const configuration = this._configuration;
+  public append(output: DocSection, apiItem: ApiItem): void {
+    const warning: string | undefined = this._warningForItem(apiItem);
+    const configuration: TSDocConfiguration = this._configuration;
 
     if (!warning) {
       return;
@@ -30,35 +30,35 @@ export class WarningAppender {
       ])
     );
   }
-};
 
-function warningForItem(apiItem: ApiItem): string | undefined {
-  if (isDeprecated(apiItem)) {
-    return deprecated;
+  private _warningForItem(apiItem: ApiItem): string | undefined {
+    if (this._isDeprecated(apiItem)) {
+      return deprecated;
+    }
+  
+    if (ApiReleaseTagMixin.isBaseClassOf(apiItem)) {
+        switch (apiItem.releaseTag) {
+          case ReleaseTag.Alpha:
+          case ReleaseTag.Beta:
+          case ReleaseTag.None:
+            return unstable;
+        }
+    }
   }
-
-  if (ApiReleaseTagMixin.isBaseClassOf(apiItem)) {
-      switch (apiItem.releaseTag) {
-        case ReleaseTag.Alpha:
-        case ReleaseTag.Beta:
-        case ReleaseTag.None:
-          return unstable;
+  
+  private _isDeprecated(apiItem: ApiItem): boolean {
+    if (apiItem instanceof ApiDocumentedItem) {
+      const tsdocComment: DocComment | undefined = apiItem.tsdocComment;
+  
+      if (!tsdocComment) {
+        return false;
       }
-  }
-}
-
-function isDeprecated(apiItem: ApiItem) {
-  if (apiItem instanceof ApiDocumentedItem) {
-    const tsdocComment: DocComment | undefined = apiItem.tsdocComment;
-
-    if (!tsdocComment) {
-      return false;
+  
+      if (tsdocComment.deprecatedBlock) {
+        return true;
+      }
     }
-
-    if (tsdocComment.deprecatedBlock) {
-      return true;
-    }
+  
+    return false;
   }
-
-  return false;
-}
+};

@@ -9,7 +9,7 @@ import {
 export class Utilities {
   private static readonly _badFilenameCharsRegExp: RegExp = /[^a-z0-9_\-\.]/ig;
   
-  public static getImportName(name: string) {
+  public static getImportName(name: string): string {
     return name.replace(Utilities._badFilenameCharsRegExp, '');
   }
   /**

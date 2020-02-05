@@ -2,8 +2,8 @@ import { DocSection } from '@microsoft/tsdoc';
 import { ApiItem, ApiDeclaredItem } from '@microsoft/api-extractor-model';
 
 export class SummaryAppender {
-  append(output: DocSection, apiItem: ApiItem): void {
-    if (!isApiDeclaredItem(apiItem)) {
+  public append(output: DocSection, apiItem: ApiItem): void {
+    if (!this._isApiDeclaredItem(apiItem)) {
       return;
     }
 
@@ -15,9 +15,9 @@ export class SummaryAppender {
       output.appendNode(node);
     }
   }
-};
 
-function isApiDeclaredItem(apiItem: ApiItem): apiItem is ApiDeclaredItem {
-  const node = apiItem as ApiDeclaredItem;
-  return node && node.buildExcerpt !== undefined;
-}
+  private _isApiDeclaredItem(apiItem: ApiItem): apiItem is ApiDeclaredItem {
+    const node: ApiDeclaredItem = apiItem as ApiDeclaredItem;
+    return node && node.buildExcerpt !== undefined;
+  }
+};

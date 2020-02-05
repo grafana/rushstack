@@ -6,13 +6,13 @@ export class SignatureAppender {
   private readonly _configuration: TSDocConfiguration;
   private readonly _boldTextAppender: BoldTextAppender;
 
-  constructor(configuration: TSDocConfiguration) {
+  public constructor(configuration: TSDocConfiguration) {
     this._configuration = configuration;
     this._boldTextAppender = new BoldTextAppender(configuration);
   }
 
-  append(output: DocSection, apiItem: ApiItem): void {
-    if (!isApiDeclaredItem(apiItem)) {
+  public append(output: DocSection, apiItem: ApiItem): void {
+    if (!this._isApiDeclaredItem(apiItem)) {
       return;
     }
 
@@ -20,7 +20,7 @@ export class SignatureAppender {
       return;
     }
 
-    const configuration = this._configuration;
+    const configuration: TSDocConfiguration = this._configuration;
     this._boldTextAppender.append(output, 'Signature');
 
     output.appendNode(new DocFencedCode({
@@ -29,9 +29,9 @@ export class SignatureAppender {
         language: 'typescript'
     }));
   }
-};
 
-function isApiDeclaredItem(apiItem: ApiItem): apiItem is ApiDeclaredItem {
-  const node = apiItem as ApiDeclaredItem;
-  return node && node.buildExcerpt !== undefined;
-}
+  private _isApiDeclaredItem(apiItem: ApiItem): apiItem is ApiDeclaredItem {
+    const node: ApiDeclaredItem = apiItem as ApiDeclaredItem;
+    return node && node.buildExcerpt !== undefined;
+  }
+};

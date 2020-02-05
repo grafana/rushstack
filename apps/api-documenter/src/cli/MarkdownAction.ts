@@ -37,7 +37,7 @@ export class MarkdownAction extends BaseAction {
     const apiModel: ApiModel = this.buildApiModel();
 
     if (this._hugoParameter.value) {
-      const markdownDocumenter = new HugoMarkdownDocumenter({
+      const markdownDocumenter: HugoMarkdownDocumenter = new HugoMarkdownDocumenter({
         model: apiModel,
         draft: this._hugoDraftParameter.value || false,
         output: this.outputFolder
