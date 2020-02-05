@@ -47,7 +47,7 @@ export class ImportAppender {
       .split('.')
       .map((value, index, all) => {
         if (index === 0) {
-          return this._generateImport(value, apiItem.displayName);
+          return this._generateImport(value, packageItem.displayName);
         }
         return this._generateDestruct(value, all[index - 1]);
       })
@@ -62,7 +62,6 @@ export class ImportAppender {
 
   private _generateImport(path: string, displayName: string): string {
     const escapedPath: string = Utilities.getImportName(path);
-    const escapedName: string = Utilities.getImportName(displayName);
-    return `import { ${escapedPath} } from '${escapedName}';`;
+    return `import { ${escapedPath} } from '${displayName}';`;
   }
 };

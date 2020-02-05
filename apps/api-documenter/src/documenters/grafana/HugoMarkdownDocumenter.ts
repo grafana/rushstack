@@ -109,7 +109,7 @@ export class HugoMarkdownDocumenter {
     output.appendNode(new DocFrontMatter({ configuration, apiItem, draft }));
 
     this._pageTitleAppender.append(output, apiItem);
-    this._writeApiItemContent(output, apiItem);
+    this._writeApiItemContent(output, apiItem, true);
 
     const filename: string = path.join(this._outputFolder, this._getFilenameForApiItem(apiItem));
     const stringBuilder: StringBuilder = new StringBuilder();
@@ -690,7 +690,7 @@ export class HugoMarkdownDocumenter {
         new DocLinkTag({
           configuration,
           tagName: '@link',
-          linkText: Utilities.getConciseSignature(apiItem),
+          linkText: Utilities.getGrafanaConciseSignature(apiItem),
           urlDestination: this._getUrlDestination(apiItem)
         })
       ])
@@ -712,9 +712,17 @@ export class HugoMarkdownDocumenter {
         return `./${link}`;
       }
 
-      case ApiItemKind.Property: {
+      case ApiItemKind.Property:
+      case ApiItemKind.PropertySignature: {
         const link: string = Utilities.getSafeFilenameForName(apiItem.displayName);
         return `#${link}-property`;
+      }
+
+      case ApiItemKind.ConstructSignature:
+      case ApiItemKind.Constructor: {
+        const signature: string = Utilities.getGrafanaConciseSignature(apiItem);
+        const link: string = Utilities.getHeaderLinkForName(signature);
+        return `#${link}`;
       }
 
       case ApiItemKind.TypeAlias:
@@ -823,14 +831,14 @@ export class HugoMarkdownDocumenter {
 
   private _getFilenameForApiItem(apiItem: ApiItem): string {
     if (apiItem.kind === ApiItemKind.Model) {
-      return 'index.md';
+      return '_index.md';
     }
 
     if (apiItem.kind === ApiItemKind.Package) {
       const unscopedName: string = PackageName.getUnscopedName(apiItem.displayName);
       const baseName: string = Utilities.getSafeFilenameForName(unscopedName);
 
-      return `${baseName}/index.md`;
+      return `${baseName}/_index.md`;
     }
 
     let baseName: string = '';

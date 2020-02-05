@@ -3,7 +3,8 @@
 
 import {
   ApiParameterListMixin,
-  ApiItem
+  ApiItem,
+  ApiItemKind
 } from '@microsoft/api-extractor-model';
 
 export class Utilities {
@@ -12,6 +13,24 @@ export class Utilities {
   public static getImportName(name: string): string {
     return name.replace(Utilities._badFilenameCharsRegExp, '');
   }
+
+  public static getGrafanaConciseSignature(apiItem: ApiItem): string {
+    let displayName: string = apiItem.displayName;
+
+    if (apiItem.kind === ApiItemKind.ConstructSignature || apiItem.kind === ApiItemKind.Constructor) {
+      displayName = displayName.replace(Utilities._badFilenameCharsRegExp, '');
+    }
+
+    if (ApiParameterListMixin.isBaseClassOf(apiItem)) {
+      return displayName + '(' + apiItem.parameters.map(x => x.name).join(', ') + ')';
+    }
+    return displayName;
+  }
+
+  public static getHeaderLinkForName(name: string): string {
+    return name.replace('(','-').replace(Utilities._badFilenameCharsRegExp, '').toLocaleLowerCase();
+  }
+
   /**
    * Generates a concise signature for a function.  Example: "getArea(width, height)"
    */

@@ -32,7 +32,7 @@ export class HeadingAppender {
         return `${scopedName} enum`;
       case ApiItemKind.Constructor:
       case ApiItemKind.ConstructSignature:
-        return Utilities.getConciseSignature(apiItem);
+        return Utilities.getGrafanaConciseSignature(apiItem);
       case ApiItemKind.Method:
       case ApiItemKind.MethodSignature:
         return `${apiItem.displayName} method`;
