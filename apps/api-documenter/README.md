@@ -10,3 +10,10 @@ For usage information, see the
 documentation.
 
 API documentation for this package: https://rushstack.io/pages/api/api-documenter/
+
+# Extended with some special Grafana extras
+
+When running the tool with the markdown option you can specify two more flags:
+
+- `--hugo` that will export the markdown in a hugo friendly format with FrontMatter meta data included.
+- `--draft` that will make the documentation as draft (it will not be visible when running Hugo in production).
