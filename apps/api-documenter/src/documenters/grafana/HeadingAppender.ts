@@ -11,7 +11,7 @@ export class HeadingAppender {
   }
 
   public append(output: DocSection, apiItem: ApiItem): void {
-    const title: string = this._titleFromItem(apiItem);
+    const title: string | undefined = this._titleFromItem(apiItem);
 
     if (!title) {
       return;
@@ -24,7 +24,7 @@ export class HeadingAppender {
     }));
   }
 
-  private _titleFromItem(apiItem: ApiItem): string {
+  private _titleFromItem(apiItem: ApiItem): string | undefined {
     const scopedName: string = apiItem.getScopedNameWithinPackage();
   
     switch (apiItem.kind) {
@@ -47,8 +47,6 @@ export class HeadingAppender {
         return `${scopedName} type`;
       case ApiItemKind.Variable:
         return `${scopedName} variable`;
-      default:
-        throw new Error('Unsupported API item kind: ' + apiItem.kind);
     }
   }
 };

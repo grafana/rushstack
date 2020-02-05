@@ -5,6 +5,7 @@ import { DocNoteBox } from './DocNoteBox';
 import { DocTable } from './DocTable';
 import { DocTableCell } from './DocTableCell';
 import { DocTableRow } from './DocTableRow';
+import { DocFrontMatter } from './grafana/DocFrontMatter';
 
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
@@ -18,7 +19,7 @@ export const enum CustomDocNodeKind {
   NoteBox                       = 'NoteBox',
   Table                         = 'Table',
   TableCell                     = 'TableCell',
-  TableRow                      = 'TableRow'
+  TableRow                      = 'TableRow',
 }
 
 export class CustomDocNodes {
@@ -34,7 +35,8 @@ export class CustomDocNodes {
         { docNodeKind: CustomDocNodeKind.NoteBox, constructor: DocNoteBox },
         { docNodeKind: CustomDocNodeKind.Table, constructor: DocTable },
         { docNodeKind: CustomDocNodeKind.TableCell, constructor: DocTableCell },
-        { docNodeKind: CustomDocNodeKind.TableRow, constructor: DocTableRow }
+        { docNodeKind: CustomDocNodeKind.TableRow, constructor: DocTableRow },
+        { docNodeKind: DocFrontMatter.name, constructor: DocFrontMatter }
       ]);
 
       configuration.docNodeManager.registerAllowableChildren(CustomDocNodeKind.EmphasisSpan, [
@@ -45,13 +47,15 @@ export class CustomDocNodes {
       configuration.docNodeManager.registerAllowableChildren(DocNodeKind.Section, [
         CustomDocNodeKind.Heading,
         CustomDocNodeKind.NoteBox,
-        CustomDocNodeKind.Table
+        CustomDocNodeKind.Table,
+        DocFrontMatter.name
       ]);
 
       configuration.docNodeManager.registerAllowableChildren(DocNodeKind.Paragraph, [
         CustomDocNodeKind.EmphasisSpan
       ]);
 
+      configuration.validation.reportUnsupportedTags = false;
       CustomDocNodes._configuration = configuration;
     }
     return CustomDocNodes._configuration;

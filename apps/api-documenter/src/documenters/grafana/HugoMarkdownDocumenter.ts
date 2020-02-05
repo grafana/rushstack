@@ -97,6 +97,8 @@ export class HugoMarkdownDocumenter {
   public generateFiles(): void {
     this._deleteOldOutputFiles(this._outputFolder);
     this._writeApiItemPage(this._apiModel);
+    
+    console.log('Successfully generated markdown files');
   }
 
   private _writeApiItemPage(apiItem: ApiItem): void {
