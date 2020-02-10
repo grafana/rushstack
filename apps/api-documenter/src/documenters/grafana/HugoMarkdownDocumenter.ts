@@ -709,7 +709,7 @@ export class HugoMarkdownDocumenter {
       case ApiItemKind.Package: {
         const signature: string = PackageName.getUnscopedName(apiItem.displayName);
         const link: string = Utilities.getSafeFilenameForName(signature);
-        return `./${link}`;
+        return `./${link}/`;
       }
 
       case ApiItemKind.Property:
@@ -733,7 +733,7 @@ export class HugoMarkdownDocumenter {
       case ApiItemKind.Namespace:
       case ApiItemKind.Class: {
         const link: string = Utilities.getSafeFilenameForName(apiItem.displayName);
-        return `./${link}`;
+        return `./${link}/`;
       }
 
       default:
