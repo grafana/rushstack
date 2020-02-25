@@ -18,6 +18,6 @@ export class SummaryAppender {
 
   private _isApiDeclaredItem(apiItem: ApiItem): apiItem is ApiDeclaredItem {
     const node: ApiDeclaredItem = apiItem as ApiDeclaredItem;
-    return node && node.buildExcerpt !== undefined;
+    return node && node.tsdocComment !== undefined;
   }
 };
