@@ -8,8 +8,8 @@ import {
   CommandLineFlagParameter,
   CommandLineStringParameter,
   CommandLineChoiceParameter
-} from '@microsoft/ts-command-line';
-import { FileSystem } from '@microsoft/node-core-library';
+} from '@rushstack/ts-command-line';
+import { FileSystem } from '@rushstack/node-core-library';
 
 import {
   IChangeInfo,
@@ -66,12 +66,6 @@ export class PublishAction extends BaseRushAction {
       'changes and publish packages, you must use the --commit flag and/or the --publish flag.',
       parser
     });
-
-    // Example: "common\temp\publish-home"
-    this._targetNpmrcPublishFolder = path.join(this.rushConfiguration.commonTempFolder, 'publish-home');
-
-    // Example: "common\temp\publish-home\.npmrc"
-    this._targetNpmrcPublishPath = path.join(this._targetNpmrcPublishFolder, '.npmrc');
   }
 
   protected onDefineParameters(): void {
@@ -210,6 +204,12 @@ export class PublishAction extends BaseRushAction {
   protected run(): Promise<void> {
     return Promise.resolve().then(() => {
       PolicyValidator.validatePolicy(this.rushConfiguration, false);
+
+      // Example: "common\temp\publish-home"
+      this._targetNpmrcPublishFolder = path.join(this.rushConfiguration.commonTempFolder, 'publish-home');
+
+      // Example: "common\temp\publish-home\.npmrc"
+      this._targetNpmrcPublishPath = path.join(this._targetNpmrcPublishFolder, '.npmrc');
 
       const allPackages: Map<string, RushConfigurationProject> = this.rushConfiguration.projectsByName;
 
@@ -500,7 +500,7 @@ export class PublishAction extends BaseRushAction {
     }
   }
 
-  private _addNpmPublishHome(): void {    
+  private _addNpmPublishHome(): void {
     // Create "common\temp\publish-home" folder, if it doesn't exist
     Utilities.createFolderWithRetry(this._targetNpmrcPublishFolder);
 

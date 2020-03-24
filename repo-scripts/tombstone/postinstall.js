@@ -4,18 +4,21 @@ function writeErrorInRed(message) {
   console.error('\u001b[31m' + message + '\u001b[39m');
 }
 
-writeErrorInRed(`* * * * * * * * * * * THIS PACKAGE HAS BEEN DEPRECATED! * * * * * * * * * * * *`);
+writeErrorInRed(
+`* * * * * * * * * * * * * THIS PACKAGE WAS RENAMED! * * * * * * * * * * * * * *`);
 
 console.error(`
-OLD NAME:  @microsoft/eslint-config-scalable-ts
-NEW NAME:  @rushstack/eslint-config
+IMPORTANT: This package has moved under the "@rushstack" NPM scope.
 
-Please uninstall the old package by running this command:
+OLD NAME: @microsoft/node-core-library (3.19.3)
+NEW NAME: @rushstack/node-core-library (3.19.4)
 
-  npm uninstall --save-dev @microsoft/eslint-config-scalable-ts
+The new package's CHANGELOG.md preserves version history from before the rename.
+The new package starts with a SemVer PATCH increment, since no code has changed.
+To learn about the Rush Stack project, please visit https://rushstack.io/`
+);
 
-Then install the new package:
+writeErrorInRed(
+`* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n`);
 
-  npm install --save-dev @rushstack/eslint-config`);
-
-writeErrorInRed(`* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *`);
+process.exit(1);
