@@ -1,14 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import {
-  StringValuesTypingsGenerator,
-  IStringValueTyping
-} from '@rushstack/typings-generator';
-import { Terminal } from '@rushstack/node-core-library';
+import { StringValuesTypingsGenerator, IStringValueTyping } from '@rushstack/typings-generator';
+import { Terminal, NewlineKind } from '@rushstack/node-core-library';
 
 import { ILocalizationFile } from './interfaces';
-import { ILoggerOptions } from './utilities/Logging';
 import { LocFileParser } from './utilities/LocFileParser';
 
 /**
@@ -20,6 +16,7 @@ export interface ITypingsGeneratorOptions {
   terminal?: Terminal;
   exportAsDefault?: boolean;
   filesToIgnore?: string[];
+  resxNewlineNormalization?: NewlineKind | undefined;
 }
 
 /**
@@ -28,8 +25,6 @@ export interface ITypingsGeneratorOptions {
  * @public
  */
 export class LocFileTypingsGenerator extends StringValuesTypingsGenerator {
-  private _loggingOptions: ILoggerOptions;
-
   public constructor(options: ITypingsGeneratorOptions) {
     super({
       ...options,
@@ -38,12 +33,14 @@ export class LocFileTypingsGenerator extends StringValuesTypingsGenerator {
         const locFileData: ILocalizationFile = LocFileParser.parseLocFile({
           filePath: filePath,
           content: fileContents,
-          loggerOptions: this._loggingOptions
+          terminal: this._options.terminal!,
+          resxNewlineNormalization: options.resxNewlineNormalization
         });
 
         const typings: IStringValueTyping[] = [];
 
-        for (const stringName in locFileData) { // eslint-disable-line guard-for-in
+        // eslint-disable-next-line guard-for-in
+        for (const stringName in locFileData) {
           typings.push({
             exportName: stringName,
             comment: locFileData[stringName].comment
@@ -53,10 +50,5 @@ export class LocFileTypingsGenerator extends StringValuesTypingsGenerator {
         return { typings };
       }
     });
-
-    this._loggingOptions = {
-      writeError: this._options.terminal!.writeErrorLine.bind(this._options.terminal),
-      writeWarning: this._options.terminal!.writeWarningLine.bind(this._options.terminal)
-    };
   }
 }

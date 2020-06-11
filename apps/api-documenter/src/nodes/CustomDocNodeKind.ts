@@ -14,12 +14,12 @@ import { DocFrontMatter } from './grafana/DocFrontMatter';
  * Identifies custom subclasses of {@link DocNode}.
  */
 export const enum CustomDocNodeKind {
-  EmphasisSpan                  = 'EmphasisSpan',
-  Heading                       = 'Heading',
-  NoteBox                       = 'NoteBox',
-  Table                         = 'Table',
-  TableCell                     = 'TableCell',
-  TableRow                      = 'TableRow',
+  EmphasisSpan = 'EmphasisSpan',
+  Heading = 'Heading',
+  NoteBox = 'NoteBox',
+  Table = 'Table',
+  TableCell = 'TableCell',
+  TableRow = 'TableRow'
 }
 
 export class CustomDocNodes {

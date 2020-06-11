@@ -1,17 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-export {
- LocalizationPlugin,
- IStringPlaceholder as _IStringPlaceholder
-} from './LocalizationPlugin';
+export { LocalizationPlugin, IStringPlaceholder as _IStringPlaceholder } from './LocalizationPlugin';
 
 export {
   IDefaultLocaleOptions,
   ILocaleData,
   ILocaleElementMap,
   ILocaleFileData,
-  ILocalizationFile as _ILocFile,
+  ILocalizationFile as _ILocalizationFile,
   ILocalizationPluginOptions,
   ILocalizationStats,
   ILocalizationStatsChunkGroup,
@@ -23,6 +20,7 @@ export {
   IPassthroughLocaleOptions,
   IPseudolocaleOptions,
   IPseudolocalesOptions,
+  IResolvedMissingTranslations,
   ITypingsGenerationOptions
 } from './interfaces';
 
@@ -31,13 +29,7 @@ export {
   IParseLocFileOptions as _IParseLocFileOptions
 } from './utilities/LocFileParser';
 
-export {
-  ILoggerOptions as _ILoggerOptions
-} from './utilities/Logging';
-
-export {
-  ILocalizedWebpackChunk
-} from './webpackInterfaces';
+export { ILocalizedWebpackChunk } from './webpackInterfaces';
 
 export {
   ITypingsGeneratorOptions,

@@ -3,11 +3,14 @@
 
 import { loader } from 'webpack';
 import * as loaderUtils from 'loader-utils';
+import { NewlineKind } from '@rushstack/node-core-library';
 
-export interface IBaseLoaderOptions { }
+export interface IBaseLoaderOptions {
+  resxNewlineNormalization: NewlineKind | undefined;
+}
 
 export interface ILoaderResult {
-  [stringName: string]: string
+  [stringName: string]: string;
 }
 
 export function loaderFactory<TOptions extends IBaseLoaderOptions>(
@@ -17,5 +20,5 @@ export function loaderFactory<TOptions extends IBaseLoaderOptions>(
     const options: TOptions = loaderUtils.getOptions(this) as TOptions;
     const resultObject: ILoaderResult = innerLoader.call(this, this.resourcePath, content, options);
     return JSON.stringify(resultObject);
-  }
+  };
 }

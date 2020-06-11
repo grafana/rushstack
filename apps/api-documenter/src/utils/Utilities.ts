@@ -9,7 +9,7 @@ import {
 
 export class Utilities {
   private static readonly _badFilenameCharsRegExp: RegExp = /[^a-z0-9_\-\.]/ig;
-  
+
   public static getImportName(name: string): string {
     return name.replace(Utilities._badFilenameCharsRegExp, '');
   }
@@ -36,7 +36,7 @@ export class Utilities {
    */
   public static getConciseSignature(apiItem: ApiItem): string {
     if (ApiParameterListMixin.isBaseClassOf(apiItem)) {
-      return apiItem.displayName + '(' + apiItem.parameters.map(x => x.name).join(', ') + ')';
+      return apiItem.displayName + '(' + apiItem.parameters.map((x) => x.name).join(', ') + ')';
     }
     return apiItem.displayName;
   }

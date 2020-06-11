@@ -6,6 +6,7 @@
 
 import { IPackageJson } from '@rushstack/node-core-library';
 import { JsonObject } from '@rushstack/node-core-library';
+import { PackageNameParser } from '@rushstack/node-core-library';
 
 // @public
 export class ApprovedPackagesConfiguration {
@@ -90,6 +91,8 @@ export const enum DependencyType {
 export const enum EnvironmentVariableNames {
     RUSH_ABSOLUTE_SYMLINKS = "RUSH_ABSOLUTE_SYMLINKS",
     RUSH_ALLOW_UNSUPPORTED_NODEJS = "RUSH_ALLOW_UNSUPPORTED_NODEJS",
+    RUSH_DEPLOY_TARGET_FOLDER = "RUSH_DEPLOY_TARGET_FOLDER",
+    RUSH_PARALLELISM = "RUSH_PARALLELISM",
     RUSH_PNPM_STORE_PATH = "RUSH_PNPM_STORE_PATH",
     RUSH_PREVIEW_VERSION = "RUSH_PREVIEW_VERSION",
     RUSH_TEMP_FOLDER = "RUSH_TEMP_FOLDER",
@@ -134,6 +137,8 @@ export interface IConfigurationEnvironmentVariable {
 // @beta
 export interface IExperimentsJson {
     legacyIncrementalBuildDependencyDetection?: boolean;
+    noChmodFieldInTarHeaderNormalization?: boolean;
+    usePnpmFrozenLockfileForRushInstall?: boolean;
 }
 
 // @public
@@ -168,6 +173,7 @@ export interface IPackageManagerOptionsJsonBase {
 // @internal
 export interface _IPnpmOptionsJson extends IPackageManagerOptionsJsonBase {
     pnpmStore?: PnpmStoreOptions;
+    preventManualShrinkwrapChanges?: boolean;
     resolutionStrategy?: ResolutionStrategy;
     strictPeerDependencies?: boolean;
 }
@@ -280,6 +286,7 @@ export class PnpmOptionsConfiguration extends PackageManagerOptionsConfiguration
     constructor(json: _IPnpmOptionsJson, commonTempFolder: string);
     readonly pnpmStore: PnpmStoreOptions;
     readonly pnpmStorePath: string;
+    readonly preventManualShrinkwrapChanges: boolean;
     readonly resolutionStrategy: ResolutionStrategy;
     readonly strictPeerDependencies: boolean;
 }
@@ -299,10 +306,12 @@ export class Rush {
 
 // @public
 export class RushConfiguration {
+    readonly allowMostlyStandardPackageNames: boolean;
     readonly approvedPackagesPolicy: ApprovedPackagesPolicy;
     readonly changesFolder: string;
     // @deprecated
     readonly committedShrinkwrapFilename: string;
+    readonly commonDeployConfigFolder: string;
     readonly commonFolder: string;
     readonly commonRushConfigFolder: string;
     readonly commonScriptsFolder: string;
@@ -334,10 +343,12 @@ export class RushConfiguration {
     readonly npmOptions: NpmOptionsConfiguration;
     readonly npmTmpFolder: string;
     readonly packageManager: PackageManagerName;
+    readonly packageManagerOptions: PackageManagerOptionsConfigurationBase;
     readonly packageManagerToolFilename: string;
     readonly packageManagerToolVersion: string;
     // @beta
     readonly packageManagerWrapper: PackageManager;
+    readonly packageNameParser: PackageNameParser;
     readonly pnpmOptions: PnpmOptionsConfiguration;
     readonly projectFolderMaxDepth: number;
     readonly projectFolderMinDepth: number;
