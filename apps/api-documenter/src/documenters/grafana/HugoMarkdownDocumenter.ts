@@ -1,10 +1,6 @@
 import * as path from 'path';
 
-import {
-  PackageName,
-  FileSystem,
-  NewlineKind
-} from '@microsoft/node-core-library';
+import { PackageName, FileSystem, NewlineKind } from '@rushstack/node-core-library';
 import {
   DocSection,
   DocPlainText,
@@ -56,7 +52,7 @@ import { SummaryAppender } from './SummaryAppender';
 export interface IHugoMarkdownDocumenterParameters {
   draft: boolean;
   model: ApiModel;
-  output: string
+  output: string;
 }
 
 /**
@@ -97,7 +93,7 @@ export class HugoMarkdownDocumenter {
   public generateFiles(): void {
     this._deleteOldOutputFiles(this._outputFolder);
     this._writeApiItemPage(this._apiModel);
-    
+
     console.log('Successfully generated markdown files');
   }
 
@@ -188,9 +184,9 @@ export class HugoMarkdownDocumenter {
     }
 
     if (appendRemarks) {
-        this._writeRemarksSection(output, apiItem);
+      this._writeRemarksSection(output, apiItem);
     }
-  };
+  }
 
   private _writeRemarksSection(output: DocSection, apiItem: ApiItem): void {
     if (apiItem instanceof ApiDocumentedItem) {
@@ -204,8 +200,9 @@ export class HugoMarkdownDocumenter {
         }
 
         // Write the @example blocks
-        const exampleBlocks: DocBlock[] = tsdocComment.customBlocks.filter(x => x.blockTag.tagNameWithUpperCase
-          === StandardTags.example.tagNameWithUpperCase);
+        const exampleBlocks: DocBlock[] = tsdocComment.customBlocks.filter(
+          (x) => x.blockTag.tagNameWithUpperCase === StandardTags.example.tagNameWithUpperCase
+        );
 
         let exampleNumber: number = 1;
         for (const exampleBlock of exampleBlocks) {
@@ -227,8 +224,9 @@ export class HugoMarkdownDocumenter {
 
       if (tsdocComment) {
         // Write the @throws blocks
-        const throwsBlocks: DocBlock[] = tsdocComment.customBlocks.filter(x => x.blockTag.tagNameWithUpperCase
-          === StandardTags.throws.tagNameWithUpperCase);
+        const throwsBlocks: DocBlock[] = tsdocComment.customBlocks.filter(
+          (x) => x.blockTag.tagNameWithUpperCase === StandardTags.throws.tagNameWithUpperCase
+        );
 
         if (throwsBlocks.length > 0) {
           const heading: string = 'Exceptions';
@@ -248,12 +246,9 @@ export class HugoMarkdownDocumenter {
   private _writeModelTable(output: DocSection, apiModel: ApiModel): void {
     const configuration: TSDocConfiguration = this._tsdocConfiguration;
 
-    const packagesTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Package', 'Description' ]
-    });
+    const packagesTable: DocTable = new DocTable({ configuration, headerTitles: ['Package', 'Description'] });
 
     for (const apiMember of apiModel.members) {
-
       const row: DocTableRow = new DocTableRow({ configuration }, [
         this._createTitleCell(apiMember),
         this._createDescriptionCell(apiMember)
@@ -279,40 +274,44 @@ export class HugoMarkdownDocumenter {
   private _writePackageOrNamespaceTables(output: DocSection, apiContainer: ApiPackage | ApiNamespace): void {
     const configuration: TSDocConfiguration = this._tsdocConfiguration;
 
-    const classesTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Class', 'Description' ]
+    const classesTable: DocTable = new DocTable({ configuration, headerTitles: ['Class', 'Description'] });
+
+    const enumerationsTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Enumeration', 'Description']
     });
 
-    const enumerationsTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Enumeration', 'Description' ]
+    const functionsTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Function', 'Description']
     });
 
-    const functionsTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Function', 'Description' ]
+    const interfacesTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Interface', 'Description']
     });
 
-    const interfacesTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Interface', 'Description' ]
+    const namespacesTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Namespace', 'Description']
     });
 
-    const namespacesTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Namespace', 'Description' ]
+    const variablesTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Variable', 'Description']
     });
 
-    const variablesTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Variable', 'Description' ]
+    const typeAliasesTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Type Alias', 'Description']
     });
 
-    const typeAliasesTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Type Alias', 'Description' ]
-    });
-
-    const apiMembers: ReadonlyArray<ApiItem> = apiContainer.kind === ApiItemKind.Package ?
-      (apiContainer as ApiPackage).entryPoints[0].members
-      : (apiContainer as ApiNamespace).members;
+    const apiMembers: ReadonlyArray<ApiItem> =
+      apiContainer.kind === ApiItemKind.Package
+        ? (apiContainer as ApiPackage).entryPoints[0].members
+        : (apiContainer as ApiNamespace).members;
 
     for (const apiMember of apiMembers) {
-
       const row: DocTableRow = new DocTableRow({ configuration }, [
         this._createTitleCell(apiMember),
         this._createDescriptionCell(apiMember)
@@ -397,30 +396,33 @@ export class HugoMarkdownDocumenter {
   private _writeClassTables(output: DocSection, apiClass: ApiClass): void {
     const configuration: TSDocConfiguration = this._tsdocConfiguration;
 
-    const eventsTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Property', 'Modifiers', 'Type', 'Description' ]
+    const eventsTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Property', 'Modifiers', 'Type', 'Description']
     });
 
-    const constructorsTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Constructor', 'Modifiers', 'Description' ]
+    const constructorsTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Constructor', 'Modifiers', 'Description']
     });
 
     const constructorsSection: DocSection = new DocSection({ configuration });
 
-    const propertiesTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Property', 'Modifiers', 'Type', 'Description' ]
+    const propertiesTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Property', 'Modifiers', 'Type', 'Description']
     });
 
     const propertiesSection: DocSection = new DocSection({ configuration });
 
-    const methodsTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Method', 'Modifiers', 'Description' ]
+    const methodsTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Method', 'Modifiers', 'Description']
     });
 
     const methodsSection: DocSection = new DocSection({ configuration });
 
     for (const apiMember of apiClass.members) {
-
       switch (apiMember.kind) {
         case ApiItemKind.Constructor: {
           constructorsTable.addRow(
@@ -447,7 +449,6 @@ export class HugoMarkdownDocumenter {
           break;
         }
         case ApiItemKind.Property: {
-
           if ((apiMember as ApiPropertyItem).isEventProperty) {
             eventsTable.addRow(
               new DocTableRow({ configuration }, [
@@ -471,7 +472,6 @@ export class HugoMarkdownDocumenter {
           this._writeApiItemContent(propertiesSection, apiMember);
           break;
         }
-
       }
     }
 
@@ -506,14 +506,14 @@ export class HugoMarkdownDocumenter {
   private _writeEnumTables(output: DocSection, apiEnum: ApiEnum): void {
     const configuration: TSDocConfiguration = this._tsdocConfiguration;
 
-    const enumMembersTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Member', 'Value', 'Description' ]
+    const enumMembersTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Member', 'Value', 'Description']
     });
 
     for (const apiEnumMember of apiEnum.members) {
       enumMembersTable.addRow(
         new DocTableRow({ configuration }, [
-
           new DocTableCell({ configuration }, [
             new DocParagraph({ configuration }, [
               new DocPlainText({ configuration, text: Utilities.getConciseSignature(apiEnumMember) })
@@ -532,7 +532,9 @@ export class HugoMarkdownDocumenter {
     }
 
     if (enumMembersTable.rows.length > 0) {
-      output.appendNode(new DocHeading({ configuration: this._tsdocConfiguration, title: 'Enumeration Members' }));
+      output.appendNode(
+        new DocHeading({ configuration: this._tsdocConfiguration, title: 'Enumeration Members' })
+      );
       output.appendNode(enumMembersTable);
     }
   }
@@ -543,24 +545,23 @@ export class HugoMarkdownDocumenter {
   private _writeInterfaceTables(output: DocSection, apiClass: ApiInterface): void {
     const configuration: TSDocConfiguration = this._tsdocConfiguration;
 
-    const eventsTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Property', 'Type', 'Description' ]
+    const eventsTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Property', 'Type', 'Description']
     });
 
-    const propertiesTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Property', 'Type', 'Description' ]
+    const propertiesTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Property', 'Type', 'Description']
     });
 
     const properitesSection: DocSection = new DocSection({ configuration });
 
-    const methodsTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Method', 'Description' ]
-    });
+    const methodsTable: DocTable = new DocTable({ configuration, headerTitles: ['Method', 'Description'] });
 
     const methodsSection: DocSection = new DocSection({ configuration });
 
     for (const apiMember of apiClass.members) {
-
       switch (apiMember.kind) {
         case ApiItemKind.ConstructSignature:
         case ApiItemKind.MethodSignature: {
@@ -575,7 +576,6 @@ export class HugoMarkdownDocumenter {
           break;
         }
         case ApiItemKind.PropertySignature: {
-
           if ((apiMember as ApiPropertyItem).isEventProperty) {
             eventsTable.addRow(
               new DocTableRow({ configuration }, [
@@ -597,7 +597,6 @@ export class HugoMarkdownDocumenter {
           this._writeApiItemContent(properitesSection, apiMember);
           break;
         }
-
       }
     }
 
@@ -626,29 +625,30 @@ export class HugoMarkdownDocumenter {
   private _writeParameterTables(output: DocSection, apiParameterListMixin: ApiParameterListMixin): void {
     const configuration: TSDocConfiguration = this._tsdocConfiguration;
 
-    const parametersTable: DocTable = new DocTable({ configuration,
-      headerTitles: [ 'Parameter', 'Type', 'Description' ]
+    const parametersTable: DocTable = new DocTable({
+      configuration,
+      headerTitles: ['Parameter', 'Type', 'Description']
     });
 
     for (const apiParameter of apiParameterListMixin.parameters) {
-      const parameterDescription: DocSection = new DocSection({ configuration } );
+      const parameterDescription: DocSection = new DocSection({ configuration });
       if (apiParameter.tsdocParamBlock) {
         this._appendSection(parameterDescription, apiParameter.tsdocParamBlock.content);
       }
 
       parametersTable.addRow(
         new DocTableRow({ configuration }, [
-          new DocTableCell({configuration}, [
+          new DocTableCell({ configuration }, [
             new DocParagraph({ configuration }, [
               new DocPlainText({ configuration, text: apiParameter.name })
             ])
           ]),
-          new DocTableCell({configuration}, [
+          new DocTableCell({ configuration }, [
             new DocParagraph({ configuration }, [
               new DocCodeSpan({ configuration, code: apiParameter.parameterTypeExcerpt.text })
             ])
           ]),
-          new DocTableCell({configuration}, parameterDescription.nodes)
+          new DocTableCell({ configuration }, parameterDescription.nodes)
         ])
       );
     }
@@ -662,7 +662,7 @@ export class HugoMarkdownDocumenter {
       const returnTypeExcerpt: Excerpt = apiParameterListMixin.returnTypeExcerpt;
       output.appendNode(
         new DocParagraph({ configuration }, [
-          new DocEmphasisSpan({ configuration, bold: true}, [
+          new DocEmphasisSpan({ configuration, bold: true }, [
             new DocPlainText({ configuration, text: 'Returns:' })
           ])
         ])
@@ -696,7 +696,6 @@ export class HugoMarkdownDocumenter {
       ])
     ]);
   }
-
 
   private _getUrlDestination(apiItem: ApiItem): string {
     switch (apiItem.kind) {
@@ -737,7 +736,7 @@ export class HugoMarkdownDocumenter {
       }
 
       default:
-        return this._getLinkFilenameForApiItem(apiItem)
+        return this._getLinkFilenameForApiItem(apiItem);
     }
   }
 
@@ -793,7 +792,9 @@ export class HugoMarkdownDocumenter {
     const section: DocSection = new DocSection({ configuration });
 
     if (apiItem instanceof ApiPropertyItem) {
-      section.appendNodeInParagraph(new DocCodeSpan({ configuration, code: apiItem.propertyTypeExcerpt.text }));
+      section.appendNodeInParagraph(
+        new DocCodeSpan({ configuration, code: apiItem.propertyTypeExcerpt.text })
+      );
     }
 
     return new DocTableCell({ configuration }, section.nodes);
@@ -822,11 +823,9 @@ export class HugoMarkdownDocumenter {
   }
 
   private _writeBoldText(configuration: TSDocConfiguration, text: string): DocParagraph {
-      return new DocParagraph({ configuration }, [
-        new DocEmphasisSpan({ configuration, bold: true}, [
-          new DocPlainText({ configuration, text })
-        ])
-      ])
+    return new DocParagraph({ configuration }, [
+      new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text })])
+    ]);
   }
 
   private _getFilenameForApiItem(apiItem: ApiItem): string {

@@ -420,7 +420,7 @@
       "cyclicDependencyProjects": ["@microsoft/node-library-build", "@microsoft/rush-stack-compiler-3.5"]
     },
     {
-      "packageName": "@microsoft/api-documenter",
+      "packageName": "@grafana/api-documenter",
       "projectFolder": "apps/api-documenter",
       "reviewCategory": "libraries",
       "shouldPublish": true

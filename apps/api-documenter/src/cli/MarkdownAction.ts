@@ -5,7 +5,7 @@ import { ApiDocumenterCommandLine } from './ApiDocumenterCommandLine';
 import { BaseAction } from './BaseAction';
 import { MarkdownDocumenter } from '../documenters/MarkdownDocumenter';
 import { ApiModel } from '@microsoft/api-extractor-model';
-import { CommandLineFlagParameter } from '@microsoft/ts-command-line';
+import { CommandLineFlagParameter } from '@rushstack/ts-command-line';
 import { HugoMarkdownDocumenter } from '../documenters/grafana/HugoMarkdownDocumenter';
 
 export class MarkdownAction extends BaseAction {
@@ -34,7 +34,8 @@ export class MarkdownAction extends BaseAction {
     });
   }
 
-  protected onExecute(): Promise<void> { // override
+  protected onExecute(): Promise<void> {
+    // override
     const apiModel: ApiModel = this.buildApiModel();
 
     if (this._hugoParameter.value) {
