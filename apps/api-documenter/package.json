@@ -1,6 +1,6 @@
 {
   "name": "@grafana/api-documenter",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Read JSON files from api-extractor, generate documentation pages",
   "repository": {
     "type": "git",
