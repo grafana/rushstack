@@ -736,7 +736,7 @@ export class HugoMarkdownDocumenter {
       }
 
       default:
-        return this._getLinkFilenameForApiItem(apiItem);
+        return `${this._getLinkFilenameForApiItem(apiItem)}`;
     }
   }
 
@@ -841,6 +841,9 @@ export class HugoMarkdownDocumenter {
     }
 
     let baseName: string = '';
+    let relativeToRoot: string = '';
+    let suffix: string = '.md';
+
     for (const hierarchyItem of apiItem.getHierarchy()) {
       // For overloaded methods, add a suffix such as "MyClass.myMethod_2".
       let qualifiedName: string = Utilities.getSafeFilenameForName(hierarchyItem.displayName);
@@ -857,18 +860,31 @@ export class HugoMarkdownDocumenter {
         case ApiItemKind.EntryPoint:
           break;
         case ApiItemKind.Package:
+          relativeToRoot = `../${relativeToRoot}`;
           baseName = Utilities.getSafeFilenameForName(PackageName.getUnscopedName(hierarchyItem.displayName));
           break;
+        case ApiItemKind.Method:
+          baseName += `/#${qualifiedName}-method`;
+          suffix = '';
+          break;
         default:
+          relativeToRoot = `../${relativeToRoot}`;
           baseName += '/' + qualifiedName;
           break;
       }
     }
-    return baseName + '.md';
+
+    return `${relativeToRoot}${baseName}${suffix}`;
   }
 
   private _getLinkFilenameForApiItem(apiItem: ApiItem): string {
-    return './' + this._getFilenameForApiItem(apiItem);
+    const fileName: string = this._getFilenameForApiItem(apiItem);
+
+    if (fileName.startsWith('../')) {
+      return fileName;
+    }
+
+    return './' + fileName;
   }
 
   private _deleteOldOutputFiles(outputFolder: string): void {
