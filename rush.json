@@ -428,7 +428,7 @@
       "shouldPublish": true
     },
     {
-      "packageName": "@microsoft/api-extractor",
+      "packageName": "@grafana/api-extractor",
       "projectFolder": "apps/api-extractor",
       "reviewCategory": "libraries",
       "shouldPublish": true,
