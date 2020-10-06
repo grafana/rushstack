@@ -13,6 +13,7 @@ import { AstSymbolTable } from '../analyzer/AstSymbolTable';
 import { AstEntity } from '../analyzer/AstEntity';
 import { AstModule, AstModuleExportInfo } from '../analyzer/AstModule';
 import { AstSymbol } from '../analyzer/AstSymbol';
+import { AstImport } from '../analyzer/AstImport';
 import { AstDeclaration } from '../analyzer/AstDeclaration';
 import { TypeScriptHelpers } from '../analyzer/TypeScriptHelpers';
 import { WorkingPackage } from './WorkingPackage';
@@ -26,6 +27,9 @@ import { AstReferenceResolver } from '../analyzer/AstReferenceResolver';
 import { ExtractorConfig } from '../api/ExtractorConfig';
 import { AstNamespaceImport } from '../analyzer/AstNamespaceImport';
 import { AstImport } from '../analyzer/AstImport';
+
+const toAlphaNumericCamelCase = (str: string): string =>
+  str.replace(/(\W+[a-z])/g, (g) => g[g.length - 1].toUpperCase()).replace(/\W/g, '');
 
 /**
  * Options for Collector constructor.
@@ -274,8 +278,8 @@ export class Collector {
    * @remarks
    * Throws an Error if the ts.Identifier is not part of node tree that was analyzed.
    */
-  public tryGetEntityForIdentifierNode(identifier: ts.Identifier): CollectorEntity | undefined {
-    const astEntity: AstEntity | undefined = this.astSymbolTable.tryGetEntityForIdentifierNode(identifier);
+  public tryGetEntityForNode(identifier: ts.Identifier | ts.ImportTypeNode): CollectorEntity | undefined {
+    const astEntity: AstEntity | undefined = this.astSymbolTable.tryGetEntityForNode(identifier);
     if (astEntity) {
       return this._entitiesByAstEntity.get(astEntity);
     }
@@ -348,7 +352,9 @@ export class Collector {
    * initially ignoring the underscore prefix, while still deterministically comparing it.
    * The star is used as a delimiter because it is not a legal  identifier character.
    */
-  public static getSortKeyIgnoringUnderscore(identifier: string): string {
+  public static getSortKeyIgnoringUnderscore(identifier: string | undefined): string {
+    if (!identifier) return '';
+
     let parts: string[];
 
     if (identifier[0] === '_') {
@@ -500,6 +506,9 @@ export class Collector {
         entity.singleExportName !== ts.InternalSymbolName.Default
       ) {
         idealNameForEmit = entity.singleExportName;
+      } else if (entity.astEntity instanceof AstImport) {
+        // otherwise use the local name or modulePath
+        idealNameForEmit = entity.astEntity.localName || toAlphaNumericCamelCase(entity.astEntity.modulePath);
       } else {
         // otherwise use the local name
         idealNameForEmit = entity.astEntity.localName;
