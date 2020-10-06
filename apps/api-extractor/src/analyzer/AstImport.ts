@@ -47,7 +47,7 @@ export enum AstImportKind {
 export interface IAstImportOptions {
   readonly importKind: AstImportKind;
   readonly modulePath: string;
-  readonly exportName: string | undefined;
+  readonly exportName: string;
   readonly isTypeOnly: boolean;
 }
 
@@ -90,7 +90,7 @@ export class AstImport extends AstSyntheticEntity {
    * interface foo { foo: import('bar').a.b.c };
    * ```
    */
-  public readonly exportName: string | undefined;
+  public readonly exportName: string;
 
   /**
    * Whether it is a type-only import, for example:
@@ -135,8 +135,11 @@ export class AstImport extends AstSyntheticEntity {
    * Allows `AstEntity.localName` to be used as a convenient generalization of `AstSymbol.localName` and
    * `AstImport.exportName`.
    */
-  public get localName(): string | undefined {
-    return this.exportName ? this.exportName.split('.').slice(-1)[0] : undefined;
+  public get localName(): string {
+    if (this.exportName.indexOf('.')) {
+      return this.exportName.split('.').slice(-1)[0];
+    }
+    return this.exportName;
   }
 
   /**

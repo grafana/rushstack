@@ -420,10 +420,10 @@ export class ExportAnalyzer {
   ): AstEntity | undefined {
     const externalModulePath: string | undefined = this._tryGetExternalModulePath(node);
 
-    if (externalModulePath) {
+    if (externalModulePath && node.qualifier) {
       return this._fetchAstImport(undefined, {
         importKind: AstImportKind.ImportType,
-        exportName: node.qualifier ? node.qualifier.getText().trim() : undefined,
+        exportName: node.qualifier.getText().trim(),
         modulePath: externalModulePath,
         isTypeOnly: false
       });

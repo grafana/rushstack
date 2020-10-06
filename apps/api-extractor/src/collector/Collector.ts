@@ -26,7 +26,6 @@ import { MessageRouter } from './MessageRouter';
 import { AstReferenceResolver } from '../analyzer/AstReferenceResolver';
 import { ExtractorConfig } from '../api/ExtractorConfig';
 import { AstNamespaceImport } from '../analyzer/AstNamespaceImport';
-import { AstImport } from '../analyzer/AstImport';
 
 const toAlphaNumericCamelCase = (str: string): string =>
   str.replace(/(\W+[a-z])/g, (g) => g[g.length - 1].toUpperCase()).replace(/\W/g, '');
