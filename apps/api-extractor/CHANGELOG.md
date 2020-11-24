@@ -1,6 +1,72 @@
 # Change Log - @microsoft/api-extractor
 
-This log was last generated on Wed, 30 Sep 2020 18:39:17 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Nov 2020 08:19:54 GMT and should not be manually modified.
+
+## 7.12.0
+Wed, 18 Nov 2020 08:19:54 GMT
+
+### Minor changes
+
+- The "isOptional" .api.json field is now applied to both methods and properties
+
+## 7.11.5
+Wed, 18 Nov 2020 06:21:57 GMT
+
+### Patches
+
+- Update .api.json file format to store a new field "isOptional" for documenting optional properties
+
+## 7.11.4
+Wed, 11 Nov 2020 01:08:58 GMT
+
+_Version update only_
+
+## 7.11.3
+Tue, 10 Nov 2020 23:13:12 GMT
+
+_Version update only_
+
+## 7.11.2
+Fri, 30 Oct 2020 06:38:38 GMT
+
+_Version update only_
+
+## 7.11.1
+Fri, 30 Oct 2020 00:10:14 GMT
+
+_Version update only_
+
+## 7.11.0
+Thu, 29 Oct 2020 06:14:19 GMT
+
+### Minor changes
+
+- Upgrade the bundled compiler engine to TypeScript 4.0
+
+## 7.10.6
+Wed, 28 Oct 2020 01:18:03 GMT
+
+_Version update only_
+
+## 7.10.5
+Tue, 27 Oct 2020 15:10:13 GMT
+
+_Version update only_
+
+## 7.10.4
+Tue, 06 Oct 2020 00:24:06 GMT
+
+_Version update only_
+
+## 7.10.3
+Mon, 05 Oct 2020 22:36:57 GMT
+
+_Version update only_
+
+## 7.10.2
+Mon, 05 Oct 2020 15:10:42 GMT
+
+_Version update only_
 
 ## 7.10.1
 Wed, 30 Sep 2020 18:39:17 GMT

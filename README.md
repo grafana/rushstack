@@ -3,7 +3,7 @@
 <p align="center"><a href="https://rushstack.io/">https://rushstack.io/</a></p>
 </td></tr></table>
 
-[![Join the chat at https://gitter.im/rushstack](https://badges.gitter.im/rushstack.svg)](https://gitter.im/rushstack?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) &nbsp; [![Build Status](https://dev.azure.com/RushStack/GitHubProjects/_apis/build/status/rushstack/rushstack%20CI%20Build?branchName=master)](https://dev.azure.com/RushStack/GitHubProjects/_build/latest?definitionId=3&branchName=master)
+[![Zulip chat room](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://rushstack.zulipchat.com/) &nbsp; [![Build Status](https://dev.azure.com/RushStack/GitHubProjects/_apis/build/status/rushstack/rushstack%20CI%20Build?branchName=master)](https://dev.azure.com/RushStack/GitHubProjects/_build/latest?definitionId=3&branchName=master)
 
 The home for various projects maintained by the Rush Stack community, whose mission is to develop reusable tooling
 for large scale TypeScript monorepos.
@@ -13,7 +13,7 @@ for large scale TypeScript monorepos.
 
 - [What is Rush Stack?](https://rushstack.io/) - learn about the mission behind these projects
 - [API reference](https://rushstack.io/pages/api/) - browse API documentation for NPM packages
-- [Gitter chat room](https://gitter.im/rushstack/rushstack) - chat with the Rush Stack developers
+- [Zulip chat room](https://rushstack.zulipchat.com/) - chat with the Rush Stack developers
 - [Rush](https://rushjs.io/) - a build orchestrator for large scale TypeScript monorepos
 - [API Extractor](https://api-extractor.com/) - create .d.ts rollups and track your TypeScript API signatures
 - [API Documenter](https://api-extractor.com/pages/setup/generating_docs/) - use TSDoc comments to publish an API documentation website
@@ -57,6 +57,7 @@ for large scale TypeScript monorepos.
 | [/stack/eslint-config](./stack/eslint-config/) | [![npm version](https://badge.fury.io/js/%40rushstack%2Feslint-config.svg)](https://badge.fury.io/js/%40rushstack%2Feslint-config) | [changelog](./stack/eslint-config/CHANGELOG.md) | [@rushstack/eslint-config](https://www.npmjs.com/package/@rushstack/eslint-config) |
 | [/stack/eslint-patch](./stack/eslint-patch/) | [![npm version](https://badge.fury.io/js/%40rushstack%2Feslint-patch.svg)](https://badge.fury.io/js/%40rushstack%2Feslint-patch) | [changelog](./stack/eslint-patch/CHANGELOG.md) | [@rushstack/eslint-patch](https://www.npmjs.com/package/@rushstack/eslint-patch) |
 | [/stack/eslint-plugin](./stack/eslint-plugin/) | [![npm version](https://badge.fury.io/js/%40rushstack%2Feslint-plugin.svg)](https://badge.fury.io/js/%40rushstack%2Feslint-plugin) | [changelog](./stack/eslint-plugin/CHANGELOG.md) | [@rushstack/eslint-plugin](https://www.npmjs.com/package/@rushstack/eslint-plugin) |
+| [/stack/eslint-plugin-packlets](./stack/eslint-plugin-packlets/) | [![npm version](https://badge.fury.io/js/%40rushstack%2Feslint-plugin-packlets.svg)](https://badge.fury.io/js/%40rushstack%2Feslint-plugin-packlets) | [changelog](./stack/eslint-plugin-packlets/CHANGELOG.md) | [@rushstack/eslint-plugin-packlets](https://www.npmjs.com/package/@rushstack/eslint-plugin-packlets) |
 | [/stack/eslint-plugin-security](./stack/eslint-plugin-security/) | [![npm version](https://badge.fury.io/js/%40rushstack%2Feslint-plugin-security.svg)](https://badge.fury.io/js/%40rushstack%2Feslint-plugin-security) | [changelog](./stack/eslint-plugin-security/CHANGELOG.md) | [@rushstack/eslint-plugin-security](https://www.npmjs.com/package/@rushstack/eslint-plugin-security) |
 | [/stack/rush-stack-compiler-2.4](./stack/rush-stack-compiler-2.4/) | [![npm version](https://badge.fury.io/js/%40microsoft%2Frush-stack-compiler-2.4.svg)](https://badge.fury.io/js/%40microsoft%2Frush-stack-compiler-2.4) | [changelog](./stack/rush-stack-compiler-2.4/CHANGELOG.md) | [@microsoft/rush-stack-compiler-2.4](https://www.npmjs.com/package/@microsoft/rush-stack-compiler-2.4) |
 | [/stack/rush-stack-compiler-2.7](./stack/rush-stack-compiler-2.7/) | [![npm version](https://badge.fury.io/js/%40microsoft%2Frush-stack-compiler-2.7.svg)](https://badge.fury.io/js/%40microsoft%2Frush-stack-compiler-2.7) | [changelog](./stack/rush-stack-compiler-2.7/CHANGELOG.md) | [@microsoft/rush-stack-compiler-2.7](https://www.npmjs.com/package/@microsoft/rush-stack-compiler-2.7) |
@@ -98,11 +99,13 @@ for large scale TypeScript monorepos.
 | [/build-tests/heft-action-plugin-test](./build-tests/heft-action-plugin-test/) | This project exercises a custom Heft action |
 | [/build-tests/heft-example-plugin-01](./build-tests/heft-example-plugin-01/) | This is an example heft plugin that exposes hooks for other plugins |
 | [/build-tests/heft-example-plugin-02](./build-tests/heft-example-plugin-02/) | This is an example heft plugin that taps the hooks exposed from heft-example-plugin-01 |
+| [/build-tests/heft-jest-reporters-test](./build-tests/heft-jest-reporters-test/) | This project illustrates configuring Jest reporters in a minimal Heft project |
 | [/build-tests/heft-minimal-rig-test](./build-tests/heft-minimal-rig-test/) | This is a minimal rig package that is imported by the 'heft-minimal-rig-usage-test' project |
 | [/build-tests/heft-minimal-rig-usage-test](./build-tests/heft-minimal-rig-usage-test/) | A test project for Heft that resolves its compiler from the 'heft-minimal-rig-test' package |
 | [/build-tests/heft-node-everything-test](./build-tests/heft-node-everything-test/) | Building this project tests every task and config file for Heft when targeting the Node.js runtime |
 | [/build-tests/heft-oldest-compiler-test](./build-tests/heft-oldest-compiler-test/) | Building this project tests Heft with the oldest supported TypeScript compiler version |
 | [/build-tests/heft-rsc-test](./build-tests/heft-rsc-test/) | Building this project tests Heft using the rush-stack-compiler rig package |
+| [/build-tests/heft-sass-test](./build-tests/heft-sass-test/) | This project illustrates a minimal tutorial Heft project targeting the web browser runtime |
 | [/build-tests/heft-web-rig-library-test](./build-tests/heft-web-rig-library-test/) | A test project for Heft that exercises the '@rushstack/heft-web-rig' package |
 | [/build-tests/heft-webpack-everything-test](./build-tests/heft-webpack-everything-test/) | Building this project tests every task and config file for Heft when targeting the web browser runtime |
 | [/build-tests/localization-plugin-test-01](./build-tests/localization-plugin-test-01/) | Building this project exercises @microsoft/localization-plugin. This tests that the plugin works correctly without any localized resources. |
@@ -136,6 +139,7 @@ for large scale TypeScript monorepos.
 | [/tutorials/heft-node-jest-tutorial](./tutorials/heft-node-jest-tutorial/) | Building this project validates that various Jest features work correctly with Heft |
 | [/tutorials/heft-node-rig-tutorial](./tutorials/heft-node-rig-tutorial/) | This project illustrates a minimal tutorial Heft project targeting the Node.js runtime and using a rig package |
 | [/tutorials/heft-webpack-basic-tutorial](./tutorials/heft-webpack-basic-tutorial/) | This project illustrates a minimal tutorial Heft project targeting the web browser runtime |
+| [/tutorials/packlets-tutorial](./tutorials/packlets-tutorial/) | This project illustrates how to use @rushstack/eslint-plugin-packlets |
 <!-- GENERATED PROJECT SUMMARY END -->
 
 ## Contributor Notice
