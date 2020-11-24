@@ -828,7 +828,7 @@ export class HugoMarkdownDocumenter {
     ]);
   }
 
-  private _getFilenameForApiItem(apiItem: ApiItem, useRel: boolean = false): string {
+  private _getFilenameForApiItem(apiItem: ApiItem, relative: boolean = false): string {
     if (apiItem.kind === ApiItemKind.Model) {
       return '_index.md';
     }
@@ -841,8 +841,8 @@ export class HugoMarkdownDocumenter {
     }
 
     let baseName: string = '';
-    let relativeToRoot: string = '';
     let suffix: string = '.md';
+    let relativeToRoot: string = '';
 
     for (const hierarchyItem of apiItem.getHierarchy()) {
       // For overloaded methods, add a suffix such as "MyClass.myMethod_2".
@@ -860,12 +860,14 @@ export class HugoMarkdownDocumenter {
         case ApiItemKind.EntryPoint:
           break;
         case ApiItemKind.Package:
-          relativeToRoot = `../${relativeToRoot}`;
           baseName = Utilities.getSafeFilenameForName(PackageName.getUnscopedName(hierarchyItem.displayName));
           break;
         case ApiItemKind.Method:
           baseName += `/#${qualifiedName}-method`;
           suffix = '';
+          break;
+        case ApiItemKind.Enum:
+          relativeToRoot = `../${relativeToRoot}`;
           break;
         default:
           relativeToRoot = `../${relativeToRoot}`;
@@ -874,7 +876,7 @@ export class HugoMarkdownDocumenter {
       }
     }
 
-    if (useRel) {
+    if (relative) {
       return `${relativeToRoot}${baseName}${suffix}`;
     }
     return `${baseName}${suffix}`;

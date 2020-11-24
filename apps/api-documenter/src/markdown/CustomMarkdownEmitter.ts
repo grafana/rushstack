@@ -22,7 +22,7 @@ export interface ICustomMarkdownEmitterOptions extends IMarkdownEmitterOptions {
 }
 
 export class CustomMarkdownEmitter extends MarkdownEmitter {
-  private _apiModel: ApiModel;
+  protected _apiModel: ApiModel;
 
   public constructor(apiModel: ApiModel) {
     super();
