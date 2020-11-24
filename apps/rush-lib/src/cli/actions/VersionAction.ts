@@ -2,7 +2,7 @@
 // See LICENSE in the project root for license information.
 
 import * as semver from 'semver';
-import { IPackageJson, FileConstants } from '@rushstack/node-core-library';
+import { IPackageJson, FileConstants, Import, Enum } from '@rushstack/node-core-library';
 import { CommandLineFlagParameter, CommandLineStringParameter } from '@rushstack/ts-command-line';
 
 import { BumpType, LockStepVersionPolicy } from '../../api/VersionPolicy';
@@ -13,23 +13,24 @@ import { VersionMismatchFinder } from '../../logic/versionMismatch/VersionMismat
 import { RushCommandLineParser } from '../RushCommandLineParser';
 import { PolicyValidator } from '../../logic/policy/PolicyValidator';
 import { BaseRushAction } from './BaseRushAction';
-import { VersionManager } from '../../logic/VersionManager';
 import { PublishGit } from '../../logic/PublishGit';
 import { Git } from '../../logic/Git';
+
+// TODO: Convert this to "import type" after we upgrade to TypeScript 3.8
+import * as VersionManagerTypes from '../../logic/VersionManager';
+const versionManagerModule: typeof VersionManagerTypes = Import.lazy('../../logic/VersionManager', require);
 
 export const DEFAULT_PACKAGE_UPDATE_MESSAGE: string = 'Applying package updates.';
 
 export class VersionAction extends BaseRushAction {
-  private _ensureVersionPolicy: CommandLineFlagParameter;
-  private _overrideVersion: CommandLineStringParameter;
-  private _bumpVersion: CommandLineFlagParameter;
-  private _versionPolicy: CommandLineStringParameter;
-  private _bypassPolicy: CommandLineFlagParameter;
-  private _targetBranch: CommandLineStringParameter;
-  private _overwriteBump: CommandLineStringParameter;
-  private _prereleaseIdentifier: CommandLineStringParameter;
-
-  private _versionManager: VersionManager;
+  private _ensureVersionPolicy!: CommandLineFlagParameter;
+  private _overrideVersion!: CommandLineStringParameter;
+  private _bumpVersion!: CommandLineFlagParameter;
+  private _versionPolicy!: CommandLineStringParameter;
+  private _bypassPolicy!: CommandLineFlagParameter;
+  private _targetBranch!: CommandLineStringParameter;
+  private _overwriteBump!: CommandLineStringParameter;
+  private _prereleaseIdentifier!: CommandLineStringParameter;
 
   public constructor(parser: RushCommandLineParser) {
     super({
@@ -92,40 +93,41 @@ export class VersionAction extends BaseRushAction {
     });
   }
 
-  protected run(): Promise<void> {
-    return Promise.resolve().then(() => {
-      PolicyValidator.validatePolicy(this.rushConfiguration, { bypassPolicy: this._bypassPolicy.value });
-      const userEmail: string = Git.getGitEmail(this.rushConfiguration);
+  protected async runAsync(): Promise<void> {
+    PolicyValidator.validatePolicy(this.rushConfiguration, { bypassPolicy: this._bypassPolicy.value });
+    const userEmail: string = Git.getGitEmail(this.rushConfiguration);
 
-      this._validateInput();
+    this._validateInput();
+    const versionManager: VersionManagerTypes.VersionManager = new versionManagerModule.VersionManager(
+      this.rushConfiguration,
+      userEmail,
+      this.rushConfiguration.versionPolicyConfiguration
+    );
 
-      this._versionManager = new VersionManager(this.rushConfiguration, userEmail);
+    if (this._ensureVersionPolicy.value) {
+      this._overwritePolicyVersionIfNeeded();
+      const tempBranch: string = 'version/ensure-' + new Date().getTime();
+      versionManager.ensure(
+        this._versionPolicy.value,
+        true,
+        !!this._overrideVersion.value || !!this._prereleaseIdentifier.value
+      );
 
-      if (this._ensureVersionPolicy.value) {
-        this._overwritePolicyVersionIfNeeded();
-        const tempBranch: string = 'version/ensure-' + new Date().getTime();
-        this._versionManager.ensure(
-          this._versionPolicy.value,
-          true,
-          !!this._overrideVersion.value || !!this._prereleaseIdentifier.value
-        );
-
-        const updatedPackages: Map<string, IPackageJson> = this._versionManager.updatedProjects;
-        if (updatedPackages.size > 0) {
-          console.log(`${updatedPackages.size} packages are getting updated.`);
-          this._gitProcess(tempBranch);
-        }
-      } else if (this._bumpVersion.value) {
-        const tempBranch: string = 'version/bump-' + new Date().getTime();
-        this._versionManager.bump(
-          this._versionPolicy.value,
-          this._overwriteBump.value ? BumpType[this._overwriteBump.value] : undefined,
-          this._prereleaseIdentifier.value,
-          true
-        );
+      const updatedPackages: Map<string, IPackageJson> = versionManager.updatedProjects;
+      if (updatedPackages.size > 0) {
+        console.log(`${updatedPackages.size} packages are getting updated.`);
         this._gitProcess(tempBranch);
       }
-    });
+    } else if (this._bumpVersion.value) {
+      const tempBranch: string = 'version/bump-' + new Date().getTime();
+      await versionManager.bumpAsync(
+        this._versionPolicy.value,
+        this._overwriteBump.value ? Enum.getValueByKey(BumpType, this._overwriteBump.value) : undefined,
+        this._prereleaseIdentifier.value,
+        true
+      );
+      this._gitProcess(tempBranch);
+    }
   }
 
   private _overwritePolicyVersionIfNeeded(): void {
@@ -154,10 +156,16 @@ export class VersionAction extends BaseRushAction {
         const newPolicyVersion: semver.SemVer = new semver.SemVer(policy.version);
         if (newPolicyVersion.prerelease.length) {
           // Update 1.5.0-alpha.10 to 1.5.0-beta.10
-          newPolicyVersion.prerelease[0] = this._prereleaseIdentifier.value;
+          // For example, if we are parsing "1.5.0-alpha.10" then the newPolicyVersion.prerelease array
+          // would contain [ "alpha", 10 ], so we would replace "alpha" with "beta"
+          newPolicyVersion.prerelease = [
+            this._prereleaseIdentifier.value,
+            ...newPolicyVersion.prerelease.slice(1)
+          ];
         } else {
           // Update 1.5.0 to 1.5.0-beta
-          newPolicyVersion.prerelease.push(this._prereleaseIdentifier.value);
+          // Since there is no length, we can just set to a new array
+          newPolicyVersion.prerelease = [this._prereleaseIdentifier.value];
         }
         newVersion = newPolicyVersion.format();
       }
@@ -178,7 +186,7 @@ export class VersionAction extends BaseRushAction {
       throw new Error('Please choose --bump or --ensure-version-policy but not together.');
     }
 
-    if (this._overwriteBump.value && !BumpType[this._overwriteBump.value]) {
+    if (this._overwriteBump.value && !Enum.tryGetValueByKey(BumpType, this._overwriteBump.value)) {
       throw new Error(
         'The value of override-bump is not valid.  ' +
           'Valid values include prerelease, patch, preminor, minor, and major'

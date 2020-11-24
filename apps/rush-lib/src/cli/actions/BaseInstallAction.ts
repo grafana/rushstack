@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import * as colors from 'colors';
+import colors from 'colors';
 import * as os from 'os';
 
+import { Import } from '@rushstack/node-core-library';
 import {
   CommandLineFlagParameter,
   CommandLineIntegerParameter,
@@ -12,7 +13,7 @@ import {
 
 import { BaseRushAction } from './BaseRushAction';
 import { Event } from '../../api/EventHooks';
-import { InstallManager, IInstallManagerOptions } from '../../logic/InstallManager';
+import { BaseInstallManager, IInstallManagerOptions } from '../../logic/base/BaseInstallManager';
 import { PurgeManager } from '../../logic/PurgeManager';
 import { SetupChecks } from '../../logic/SetupChecks';
 import { StandardScriptUpdater } from '../../logic/StandardScriptUpdater';
@@ -21,17 +22,22 @@ import { VersionMismatchFinder } from '../../logic/versionMismatch/VersionMismat
 import { Variants } from '../../api/Variants';
 import { RushConstants } from '../../logic/RushConstants';
 
+const installManagerFactoryModule: typeof import('../../logic/InstallManagerFactory') = Import.lazy(
+  '../../logic/InstallManagerFactory',
+  require
+);
+
 /**
  * This is the common base class for InstallAction and UpdateAction.
  */
 export abstract class BaseInstallAction extends BaseRushAction {
-  protected _variant: CommandLineStringParameter;
-  protected _purgeParameter: CommandLineFlagParameter;
-  protected _bypassPolicyParameter: CommandLineFlagParameter;
-  protected _noLinkParameter: CommandLineFlagParameter;
-  protected _networkConcurrencyParameter: CommandLineIntegerParameter;
-  protected _debugPackageManagerParameter: CommandLineFlagParameter;
-  protected _maxInstallAttempts: CommandLineIntegerParameter;
+  protected _variant!: CommandLineStringParameter;
+  protected _purgeParameter!: CommandLineFlagParameter;
+  protected _bypassPolicyParameter!: CommandLineFlagParameter;
+  protected _noLinkParameter!: CommandLineFlagParameter;
+  protected _networkConcurrencyParameter!: CommandLineIntegerParameter;
+  protected _debugPackageManagerParameter!: CommandLineFlagParameter;
+  protected _maxInstallAttempts!: CommandLineIntegerParameter;
 
   protected onDefineParameters(): void {
     this._purgeParameter = this.defineFlagParameter({
@@ -49,7 +55,8 @@ export abstract class BaseInstallAction extends BaseRushAction {
         'If "--no-link" is specified, then project symlinks will NOT be created' +
         ' after the installation completes.  You will need to run "rush link" manually.' +
         ' This flag is useful for automated builds that want to report stages individually' +
-        ' or perform extra operations in between the two stages.'
+        ' or perform extra operations in between the two stages. This flag is not supported' +
+        ' when using workspaces.'
     });
     this._networkConcurrencyParameter = this.defineIntegerParameter({
       parameterLongName: '--network-concurrency',
@@ -75,7 +82,7 @@ export abstract class BaseInstallAction extends BaseRushAction {
 
   protected abstract buildInstallOptions(): IInstallManagerOptions;
 
-  protected run(): Promise<void> {
+  protected runAsync(): Promise<void> {
     VersionMismatchFinder.ensureConsistentVersions(this.rushConfiguration, {
       variant: this._variant.value
     });
@@ -117,7 +124,7 @@ export abstract class BaseInstallAction extends BaseRushAction {
 
     const installManagerOptions: IInstallManagerOptions = this.buildInstallOptions();
 
-    const installManager: InstallManager = new InstallManager(
+    const installManager: BaseInstallManager = installManagerFactoryModule.InstallManagerFactory.getInstallManager(
       this.rushConfiguration,
       this.rushGlobalFolder,
       purgeManager,

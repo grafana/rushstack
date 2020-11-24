@@ -5,8 +5,8 @@ import './mockRushCommandLineParser';
 
 import * as path from 'path';
 import { FileSystem } from '@rushstack/node-core-library';
-import { Interleaver } from '@rushstack/stream-collator';
 import { RushCommandLineParser } from '../RushCommandLineParser';
+import { LastLinkFlagFactory } from '../../api/LastLinkFlag';
 
 /**
  * See `__mocks__/child_process.js`.
@@ -38,7 +38,6 @@ interface IParserTestInstance {
  * in `__mocks__/child_process.js`.
  */
 function setSpawnMock(options?: ISpawnMockConfig): jest.Mock {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const cpMocked: IChildProcessModuleMock = require('child_process');
   cpMocked.__setSpawnMockConfig(options);
 
@@ -65,6 +64,10 @@ function getCommandLineParserInstance(repoName: string, taskName: string): IPars
   // ends.
   const parser: RushCommandLineParser = new RushCommandLineParser({ cwd: startPath });
 
+  // Bulk tasks are hard-coded to expect install to have been completed. So, ensure the last-link.flag
+  // file exists and is valid
+  LastLinkFlagFactory.getCommonTempFlag(parser.rushConfiguration).create();
+
   // Mock the command
   process.argv = ['pretend-this-is-node.exe', 'pretend-this-is-rush', taskName];
   const spawnMock: jest.Mock = setSpawnMock();
@@ -82,14 +85,6 @@ const SPAWN_ARG_OPTIONS: number = 2;
 describe('RushCommandLineParser', () => {
   describe('execute', () => {
     afterEach(() => {
-      // Reset Interleaver so we can re-register a task with the same name for the tests.
-      //
-      // Interleaver retains a static list of writer loggers which must have unique names. The names are the
-      // names of the packages. Our unit tests use test repos with generic 'a', 'b' package names, so anything after
-      // the first test that runs an instance of RushCommandLineParser throws an exception complaining of duplicate
-      // writer names.
-      Interleaver.reset();
-
       jest.clearAllMocks();
     });
 

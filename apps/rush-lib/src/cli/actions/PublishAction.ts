@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import * as colors from 'colors';
+import colors from 'colors';
 import { EOL } from 'os';
 import * as path from 'path';
+import * as semver from 'semver';
 import {
   CommandLineFlagParameter,
   CommandLineStringParameter,
@@ -28,30 +29,30 @@ import { DEFAULT_PACKAGE_UPDATE_MESSAGE } from './VersionAction';
 import { Utilities } from '../../utilities/Utilities';
 
 export class PublishAction extends BaseRushAction {
-  private _addCommitDetails: CommandLineFlagParameter;
-  private _apply: CommandLineFlagParameter;
-  private _includeAll: CommandLineFlagParameter;
-  private _npmAuthToken: CommandLineStringParameter;
-  private _npmTag: CommandLineStringParameter;
-  private _npmAccessLevel: CommandLineChoiceParameter;
-  private _publish: CommandLineFlagParameter;
-  private _regenerateChangelogs: CommandLineFlagParameter;
-  private _registryUrl: CommandLineStringParameter;
-  private _targetBranch: CommandLineStringParameter;
-  private _prereleaseName: CommandLineStringParameter;
-  private _partialPrerelease: CommandLineFlagParameter;
-  private _suffix: CommandLineStringParameter;
-  private _force: CommandLineFlagParameter;
-  private _versionPolicy: CommandLineStringParameter;
-  private _applyGitTagsOnPack: CommandLineFlagParameter;
-  private _commitId: CommandLineStringParameter;
-  private _releaseFolder: CommandLineStringParameter;
-  private _pack: CommandLineFlagParameter;
+  private _addCommitDetails!: CommandLineFlagParameter;
+  private _apply!: CommandLineFlagParameter;
+  private _includeAll!: CommandLineFlagParameter;
+  private _npmAuthToken!: CommandLineStringParameter;
+  private _npmTag!: CommandLineStringParameter;
+  private _npmAccessLevel!: CommandLineChoiceParameter;
+  private _publish!: CommandLineFlagParameter;
+  private _regenerateChangelogs!: CommandLineFlagParameter;
+  private _registryUrl!: CommandLineStringParameter;
+  private _targetBranch!: CommandLineStringParameter;
+  private _prereleaseName!: CommandLineStringParameter;
+  private _partialPrerelease!: CommandLineFlagParameter;
+  private _suffix!: CommandLineStringParameter;
+  private _force!: CommandLineFlagParameter;
+  private _versionPolicy!: CommandLineStringParameter;
+  private _applyGitTagsOnPack!: CommandLineFlagParameter;
+  private _commitId!: CommandLineStringParameter;
+  private _releaseFolder!: CommandLineStringParameter;
+  private _pack!: CommandLineFlagParameter;
 
-  private _prereleaseToken: PrereleaseToken;
-  private _hotfixTagOverride: string;
-  private _targetNpmrcPublishFolder: string;
-  private _targetNpmrcPublishPath: string;
+  private _prereleaseToken!: PrereleaseToken;
+  private _hotfixTagOverride!: string;
+  private _targetNpmrcPublishFolder!: string;
+  private _targetNpmrcPublishPath!: string;
 
   public constructor(parser: RushCommandLineParser) {
     super({
@@ -109,7 +110,10 @@ export class PublishAction extends BaseRushAction {
       parameterShortName: '-n',
       argumentName: 'TOKEN',
       description:
-        'Provide the default scope NPM auth token to be passed into npm publish for global package publishing.'
+        '(DEPRECATED) Specifies the authentication token to use during publishing. This parameter is deprecated' +
+        ' because command line parameters may be readable by unrelated processes on a lab machine. Instead, a' +
+        ' safer practice is to pass the token via an environment variable and reference it from your ' +
+        ' common/config/rush/.npmrc-publish file.'
     });
     this._npmTag = this.defineStringParameter({
       parameterLongName: '--tag',
@@ -204,7 +208,7 @@ export class PublishAction extends BaseRushAction {
   /**
    * Executes the publish action, which will read change request files, apply changes to package.jsons,
    */
-  protected run(): Promise<void> {
+  protected runAsync(): Promise<void> {
     return Promise.resolve().then(() => {
       PolicyValidator.validatePolicy(this.rushConfiguration, { bypassPolicy: false });
 
@@ -415,6 +419,15 @@ export class PublishAction extends BaseRushAction {
 
       if (this._npmAccessLevel.value) {
         args.push(`--access`, this._npmAccessLevel.value);
+      }
+
+      if (
+        this.rushConfiguration.packageManager === 'pnpm' &&
+        semver.gte(this.rushConfiguration.packageManagerToolVersion, '4.11.0')
+      ) {
+        // PNPM 4.11.0 introduced a feature that may interrupt publishing and prompt the user for input.
+        // See this issue for details: https://github.com/microsoft/rushstack/issues/1940
+        args.push('--no-git-checks');
       }
 
       // TODO: Yarn's "publish" command line is fairly different from NPM and PNPM.  The right thing to do here

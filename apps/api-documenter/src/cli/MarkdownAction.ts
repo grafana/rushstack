@@ -4,13 +4,12 @@
 import { ApiDocumenterCommandLine } from './ApiDocumenterCommandLine';
 import { BaseAction } from './BaseAction';
 import { MarkdownDocumenter } from '../documenters/MarkdownDocumenter';
-import { ApiModel } from '@microsoft/api-extractor-model';
 import { CommandLineFlagParameter } from '@rushstack/ts-command-line';
 import { HugoMarkdownDocumenter } from '../documenters/grafana/HugoMarkdownDocumenter';
 
 export class MarkdownAction extends BaseAction {
-  private _hugoParameter: CommandLineFlagParameter;
-  private _hugoDraftParameter: CommandLineFlagParameter;
+  private _hugoParameter!: CommandLineFlagParameter;
+  private _hugoDraftParameter!: CommandLineFlagParameter;
 
   public constructor(parser: ApiDocumenterCommandLine) {
     super({
@@ -36,21 +35,25 @@ export class MarkdownAction extends BaseAction {
 
   protected onExecute(): Promise<void> {
     // override
-    const apiModel: ApiModel = this.buildApiModel();
+    const { apiModel, outputFolder } = this.buildApiModel();
 
     if (this._hugoParameter.value) {
       const markdownDocumenter: HugoMarkdownDocumenter = new HugoMarkdownDocumenter({
         model: apiModel,
         draft: this._hugoDraftParameter.value || false,
-        output: this.outputFolder
+        output: outputFolder
       });
 
       markdownDocumenter.generateFiles();
       return Promise.resolve();
     }
 
-    const markdownDocumenter: MarkdownDocumenter = new MarkdownDocumenter(apiModel, undefined);
-    markdownDocumenter.generateFiles(this.outputFolder);
+    const markdownDocumenter: MarkdownDocumenter = new MarkdownDocumenter({
+      apiModel,
+      documenterConfig: undefined,
+      outputFolder
+    });
+    markdownDocumenter.generateFiles();
     return Promise.resolve();
   }
 }

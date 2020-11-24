@@ -9,11 +9,11 @@ For usage information, see the
 [Generating Docs](https://api-extractor.com/pages/setup/generating_docs/) article from the API Extractor
 documentation.
 
-API documentation for this package: https://rushstack.io/pages/api/api-documenter/
+## Links
 
-# Extended with some special Grafana extras
+- [CHANGELOG.md](
+  https://github.com/microsoft/rushstack/blob/master/apps/api-documenter/CHANGELOG.md) - Find
+  out what's new in the latest version
+- [API Reference](https://rushstack.io/pages/api/api-documenter/)
 
-When running the tool with the markdown option you can specify two more flags:
-
-- `--hugo` that will export the markdown in a hugo friendly format with FrontMatter meta data included.
-- `--draft` that will make the documentation as draft (it will not be visible when running Hugo in production).
+API Documenter is part of the [Rush Stack](https://rushstack.io/) family of projects.

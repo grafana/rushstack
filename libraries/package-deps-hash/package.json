@@ -1,6 +1,6 @@
 {
   "name": "@rushstack/package-deps-hash",
-  "version": "2.4.23",
+  "version": "2.4.70",
   "description": "",
   "main": "lib/index.js",
   "typings": "dist/package-deps-hash.d.ts",
@@ -10,18 +10,17 @@
     "url": "https://github.com/microsoft/rushstack/tree/master/libraries/package-deps-hash"
   },
   "scripts": {
-    "build": "gulp test --clean"
+    "build": "heft test --clean"
   },
   "devDependencies": {
-    "@microsoft/rush-stack-compiler-3.5": "0.5.3",
-    "@microsoft/node-library-build": "6.4.23",
-    "@rushstack/node-core-library": "3.24.1",
-    "@rushstack/eslint-config": "0.5.8",
-    "@types/jest": "25.2.1",
-    "@types/node": "10.17.13",
-    "gulp": "~4.0.2"
+    "@rushstack/eslint-config": "workspace:*",
+    "@rushstack/heft": "workspace:*",
+    "@rushstack/heft-node-rig": "workspace:*",
+    "@rushstack/node-core-library": "workspace:*",
+    "@types/heft-jest": "1.0.1",
+    "@types/node": "10.17.13"
   },
   "dependencies": {
-    "@rushstack/node-core-library": "3.24.1"
+    "@rushstack/node-core-library": "workspace:*"
   }
 }

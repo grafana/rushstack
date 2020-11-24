@@ -121,7 +121,7 @@ export abstract class GulpTask<TTaskConfig> implements IExecutable {
     readJSONSync(localPath: string): JsonObject | undefined;
     replaceConfig(taskConfig: TTaskConfig): void;
     resolvePath(localPath: string): string;
-    readonly schema: JsonObject | undefined;
+    get schema(): JsonObject | undefined;
     setConfig(taskConfig: Partial<TTaskConfig>): void;
     taskConfig: TTaskConfig;
 }
@@ -219,7 +219,9 @@ export function _isJestEnabled(rootFolder: string): boolean;
 // Warning: (ae-incompatible-release-tags) The symbol "jest" is marked as @public, but its signature references "JestTask" which is marked as @alpha
 //
 // @public (undocumented)
-export const jest: JestTask;
+const jest_2: JestTask;
+
+export { jest_2 as jest }
 
 // @alpha
 export class JestTask extends GulpTask<IJestConfig> {

@@ -1,14 +1,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import * as colors from 'colors';
-import * as glob from 'glob';
+import colors from 'colors';
 import * as path from 'path';
 import * as builtinPackageNames from 'builtin-modules';
-import { FileSystem } from '@rushstack/node-core-library';
 
+import { Import, FileSystem } from '@rushstack/node-core-library';
 import { RushCommandLineParser } from '../RushCommandLineParser';
 import { BaseConfiglessRushAction } from './BaseRushAction';
+
+const glob: typeof import('glob') = Import.lazy('glob', require);
 
 export class ScanAction extends BaseConfiglessRushAction {
   public constructor(parser: RushCommandLineParser) {
@@ -33,7 +34,7 @@ export class ScanAction extends BaseConfiglessRushAction {
     // abstract
   }
 
-  protected run(): Promise<void> {
+  protected runAsync(): Promise<void> {
     const packageJsonFilename: string = path.resolve('./package.json');
 
     if (!FileSystem.exists(packageJsonFilename)) {

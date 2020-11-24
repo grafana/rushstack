@@ -1,15 +1,16 @@
-import { RushConfiguration, IRushLinkJson } from '../api/RushConfiguration';
-import { RushConfigurationProject } from '../api/RushConfigurationProject';
-import { JsonFile } from '@rushstack/node-core-library';
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
 
-import { ProjectTask, convertSlashesForWindows } from '../logic/taskRunner/ProjectTask';
+import { RushConfiguration } from '../api/RushConfiguration';
+import { RushConfigurationProject } from '../api/RushConfigurationProject';
+import { ProjectBuilder, convertSlashesForWindows } from '../logic/taskRunner/ProjectBuilder';
 import { PackageChangeAnalyzer } from './PackageChangeAnalyzer';
 import { TaskCollection } from './taskRunner/TaskCollection';
 
 export interface ITaskSelectorConstructor {
   rushConfiguration: RushConfiguration;
-  toFlags: ReadonlyArray<string>;
-  fromFlags: ReadonlyArray<string>;
+  toProjects: ReadonlyArray<RushConfigurationProject>;
+  fromProjects: ReadonlyArray<RushConfigurationProject>;
   commandToRun: string;
   customParameterValues: string[];
   isQuietMode: boolean;
@@ -22,13 +23,11 @@ export interface ITaskSelectorConstructor {
 /**
  * This class is responsible for:
  *  - based on to/from flags, solving the dependency graph and figuring out which projects need to be run
- *  - creating a ProjectTask for each project that needs to be built
- *  - registering the necessary ProjectTasks with the TaskRunner, which actually orchestrates execution
+ *  - creating a ProjectBuilder for each project that needs to be built
+ *  - registering the necessary ProjectBuilders with the TaskRunner, which actually orchestrates execution
  */
 export class TaskSelector {
   private _taskCollection: TaskCollection;
-  private _dependentList: Map<string, Set<string>>;
-  private _rushLinkJson: IRushLinkJson;
   private _options: ITaskSelectorConstructor;
   private _packageChangeAnalyzer: PackageChangeAnalyzer;
 
@@ -36,88 +35,68 @@ export class TaskSelector {
     this._options = options;
 
     this._packageChangeAnalyzer = new PackageChangeAnalyzer(options.rushConfiguration);
-    this._taskCollection = new TaskCollection({
-      quietMode: options.isQuietMode
-    });
-
-    try {
-      this._rushLinkJson = JsonFile.load(this._options.rushConfiguration.rushLinkJsonFilename);
-    } catch (error) {
-      throw new Error(
-        `Could not read "${this._options.rushConfiguration.rushLinkJsonFilename}".` +
-          ` Did you run "rush install" or "rush update"?`
-      );
-    }
+    this._taskCollection = new TaskCollection();
   }
 
   public registerTasks(): TaskCollection {
-    if (this._options.toFlags.length > 0) {
-      this._registerToFlags(this._options.toFlags);
+    if (this._options.toProjects.length > 0) {
+      this._registerToProjects(this._options.toProjects);
     }
-    if (this._options.fromFlags.length > 0) {
-      this._registerFromFlags(this._options.fromFlags);
+    if (this._options.fromProjects.length > 0) {
+      this._registerFromProjects(this._options.fromProjects);
     }
-    if (this._options.toFlags.length === 0 && this._options.fromFlags.length === 0) {
+    if (this._options.toProjects.length === 0 && this._options.fromProjects.length === 0) {
       this._registerAll();
     }
 
     return this._taskCollection;
   }
 
-  private _registerToFlags(toFlags: ReadonlyArray<string>): void {
-    const dependencies: Set<string> = new Set<string>();
+  private _registerToProjects(toProjects: ReadonlyArray<RushConfigurationProject>): void {
+    const dependencies: Map<string, RushConfigurationProject> = new Map<string, RushConfigurationProject>();
 
-    for (const toFlag of toFlags) {
-      const toProject:
-        | RushConfigurationProject
-        | undefined = this._options.rushConfiguration.findProjectByShorthandName(toFlag);
-      if (!toProject) {
-        throw new Error(`The project '${toFlag}' does not exist in rush.json`);
-      }
-
-      this._collectAllDependencies(toProject.packageName, dependencies);
+    for (const toProject of toProjects) {
+      this._collectAllDependencies(toProject, dependencies);
     }
 
     // Register any dependencies it may have
-    for (const dependency of dependencies) {
-      this._registerTask(this._options.rushConfiguration.getProjectByName(dependency));
+    for (const dependencyProject of dependencies.values()) {
+      this._registerTask(dependencyProject);
     }
 
     if (!this._options.ignoreDependencyOrder) {
       // Add ordering relationships for each dependency
-      for (const dependency of dependencies) {
-        this._taskCollection.addDependencies(dependency, this._rushLinkJson.localLinks[dependency] || []);
+      for (const dependencyProject of dependencies.values()) {
+        this._taskCollection.addDependencies(
+          ProjectBuilder.getTaskName(dependencyProject),
+          dependencyProject.localDependencyProjects.map((x) => ProjectBuilder.getTaskName(x))
+        );
       }
     }
   }
 
-  private _registerFromFlags(fromFlags: ReadonlyArray<string>): void {
-    this._buildDependentGraph();
-    const dependents: Set<string> = new Set<string>();
+  private _registerFromProjects(fromProjects: ReadonlyArray<RushConfigurationProject>): void {
+    const dependentList: Map<string, Set<RushConfigurationProject>> = this._getDependentGraph();
+    const dependents: Map<string, RushConfigurationProject> = new Map<string, RushConfigurationProject>();
 
-    for (const fromFlag of fromFlags) {
-      const fromProject:
-        | RushConfigurationProject
-        | undefined = this._options.rushConfiguration.findProjectByShorthandName(fromFlag);
-      if (!fromProject) {
-        throw new Error(`The project '${fromFlag}' does not exist in rush.json`);
-      }
-
-      this._collectAllDependents(fromProject.packageName, dependents);
+    for (const fromProject of fromProjects) {
+      this._collectAllDependents(dependentList, fromProject, dependents);
     }
 
     // Register all downstream dependents
-    for (const dependent of dependents) {
-      this._registerTask(this._options.rushConfiguration.getProjectByName(dependent));
+    for (const dependentProject of dependents.values()) {
+      this._registerTask(dependentProject);
     }
 
     if (!this._options.ignoreDependencyOrder) {
       // Only add ordering relationships for projects which have been registered
       // e.g. package C may depend on A & B, but if we are only building A's downstream, we will ignore B
-      for (const dependent of dependents) {
+      for (const dependentProject of dependents.values()) {
         this._taskCollection.addDependencies(
-          dependent,
-          (this._rushLinkJson.localLinks[dependent] || []).filter((dep) => dependents.has(dep))
+          ProjectBuilder.getTaskName(dependentProject),
+          dependentProject.localDependencyProjects
+            .filter((dep) => dependents.has(dep.packageName))
+            .map((x) => ProjectBuilder.getTaskName(x))
         );
       }
     }
@@ -131,8 +110,11 @@ export class TaskSelector {
 
     if (!this._options.ignoreDependencyOrder) {
       // Add ordering relationships for each dependency
-      for (const projectName of Object.keys(this._rushLinkJson.localLinks)) {
-        this._taskCollection.addDependencies(projectName, this._rushLinkJson.localLinks[projectName]);
+      for (const project of this._options.rushConfiguration.projects) {
+        this._taskCollection.addDependencies(
+          ProjectBuilder.getTaskName(project),
+          project.localDependencyProjects.map((x) => ProjectBuilder.getTaskName(x))
+        );
       }
     }
   }
@@ -140,12 +122,15 @@ export class TaskSelector {
   /**
    * Collects all upstream dependencies for a certain project
    */
-  private _collectAllDependencies(project: string, result: Set<string>): void {
-    if (!result.has(project)) {
-      result.add(project);
+  private _collectAllDependencies(
+    project: RushConfigurationProject,
+    result: Map<string, RushConfigurationProject>
+  ): void {
+    if (!result.has(project.packageName)) {
+      result.set(project.packageName, project);
 
-      for (const dependency of this._rushLinkJson.localLinks[project] || []) {
-        this._collectAllDependencies(dependency, result);
+      for (const dependencyProject of project.localDependencyProjects) {
+        this._collectAllDependencies(dependencyProject, result);
       }
     }
   }
@@ -153,12 +138,16 @@ export class TaskSelector {
   /**
    * Collects all downstream dependents of a certain project
    */
-  private _collectAllDependents(project: string, result: Set<string>): void {
-    if (!result.has(project)) {
-      result.add(project);
+  private _collectAllDependents(
+    dependentList: Map<string, Set<RushConfigurationProject>>,
+    project: RushConfigurationProject,
+    result: Map<string, RushConfigurationProject>
+  ): void {
+    if (!result.has(project.packageName)) {
+      result.set(project.packageName, project);
 
-      for (const dependent of this._dependentList.get(project) || new Set<string>()) {
-        this._collectAllDependents(dependent, result);
+      for (const dependent of dependentList.get(project.packageName) || []) {
+        this._collectAllDependents(dependentList, dependent, result);
       }
     }
   }
@@ -166,35 +155,40 @@ export class TaskSelector {
   /**
    * Inverts the localLinks to arrive at the dependent graph. This helps when using the --from flag
    */
-  private _buildDependentGraph(): void {
-    this._dependentList = new Map<string, Set<string>>();
+  private _getDependentGraph(): Map<string, Set<RushConfigurationProject>> {
+    const dependentList: Map<string, Set<RushConfigurationProject>> = new Map<
+      string,
+      Set<RushConfigurationProject>
+    >();
 
-    for (const project of Object.keys(this._rushLinkJson.localLinks)) {
-      for (const dep of this._rushLinkJson.localLinks[project]) {
-        if (!this._dependentList.has(dep)) {
-          this._dependentList.set(dep, new Set<string>());
+    for (const project of this._options.rushConfiguration.projects) {
+      for (const { packageName } of project.localDependencyProjects) {
+        if (!dependentList.has(packageName)) {
+          dependentList.set(packageName, new Set<RushConfigurationProject>());
         }
 
-        this._dependentList.get(dep)!.add(project);
+        dependentList.get(packageName)!.add(project);
       }
     }
+
+    return dependentList;
   }
 
   private _registerTask(project: RushConfigurationProject | undefined): void {
-    if (project) {
-      const projectTask: ProjectTask = new ProjectTask({
+    if (!project || this._taskCollection.hasTask(ProjectBuilder.getTaskName(project))) {
+      return;
+    }
+
+    this._taskCollection.addTask(
+      new ProjectBuilder({
         rushProject: project,
         rushConfiguration: this._options.rushConfiguration,
         commandToRun: this._getScriptToRun(project),
         isIncrementalBuildAllowed: this._options.isIncrementalBuildAllowed,
         packageChangeAnalyzer: this._packageChangeAnalyzer,
         packageDepsFilename: this._options.packageDepsFilename
-      });
-
-      if (!this._taskCollection.hasTask(projectTask.name)) {
-        this._taskCollection.addTask(projectTask);
-      }
-    }
+      })
+    );
   }
 
   private _getScriptToRun(rushProject: RushConfigurationProject): string {
@@ -221,7 +215,6 @@ export class TaskSelector {
 
     const rawCommand: string = rushProject.packageJson.scripts[script];
 
-    // eslint-disable-next-line @rushstack/no-null
     if (rawCommand === undefined || rawCommand === null) {
       return undefined;
     }

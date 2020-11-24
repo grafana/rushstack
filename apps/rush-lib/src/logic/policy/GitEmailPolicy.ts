@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import * as colors from 'colors';
+import colors from 'colors';
 import * as os from 'os';
+import { AlreadyReportedError } from '@rushstack/node-core-library';
 
 import { RushConfiguration } from '../../api/RushConfiguration';
-import { AlreadyReportedError } from '../../utilities/AlreadyReportedError';
 import { Utilities } from '../../utilities/Utilities';
 import { Git } from '../Git';
 

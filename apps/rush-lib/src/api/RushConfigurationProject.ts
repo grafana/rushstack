@@ -2,13 +2,21 @@
 // See LICENSE in the project root for license information.
 
 import * as path from 'path';
-import { JsonFile, IPackageJson, FileSystem, FileConstants } from '@rushstack/node-core-library';
+import * as semver from 'semver';
+import {
+  JsonFile,
+  IPackageJson,
+  FileSystem,
+  FileConstants,
+  IPackageJsonDependencyTable
+} from '@rushstack/node-core-library';
 
 import { RushConfiguration } from '../api/RushConfiguration';
 import { VersionPolicy, LockStepVersionPolicy } from './VersionPolicy';
 import { PackageJsonEditor } from './PackageJsonEditor';
 import { RushConstants } from '../logic/RushConstants';
 import { PackageNameParsers } from './PackageNameParsers';
+import { DependencySpecifier, DependencySpecifierType } from '../logic/DependencySpecifier';
 
 /**
  * This represents the JSON data object for a project entry in the rush.json configuration file.
@@ -33,17 +41,18 @@ export class RushConfigurationProject {
   private _projectFolder: string;
   private _projectRelativeFolder: string;
   private _projectRushTempFolder: string;
-  private _reviewCategory: string;
+  private _reviewCategory: string | undefined;
   private _packageJson: IPackageJson;
   private _packageJsonEditor: PackageJsonEditor;
   private _tempProjectName: string;
   private _unscopedTempProjectName: string;
   private _cyclicDependencyProjects: Set<string>;
   private _versionPolicyName: string | undefined;
-  private _versionPolicy: VersionPolicy;
+  private _versionPolicy: VersionPolicy | undefined;
   private _shouldPublish: boolean;
   private _skipRushCheck: boolean;
   private _downstreamDependencyProjects: string[];
+  private _localDependencyProjects: ReadonlyArray<RushConfigurationProject> | undefined;
   private readonly _rushConfiguration: RushConfiguration;
 
   /** @internal */
@@ -114,7 +123,7 @@ export class RushConfigurationProject {
       );
     }
 
-    this._packageJsonEditor = PackageJsonEditor.load(packageJsonFilename);
+    this._packageJsonEditor = PackageJsonEditor.fromObject(this._packageJson, packageJsonFilename);
 
     this._tempProjectName = tempProjectName;
 
@@ -183,7 +192,7 @@ export class RushConfigurationProject {
    * The review category name, or undefined if no category was assigned.
    * This name must be one of the valid choices listed in RushConfiguration.reviewCategories.
    */
-  public get reviewCategory(): string {
+  public get reviewCategory(): string | undefined {
     return this._reviewCategory;
   }
 
@@ -203,6 +212,20 @@ export class RushConfigurationProject {
    */
   public get downstreamDependencyProjects(): string[] {
     return this._downstreamDependencyProjects;
+  }
+
+  /**
+   * A map of projects within the Rush configuration which are directly depended on by this project
+   */
+  public get localDependencyProjects(): ReadonlyArray<RushConfigurationProject> {
+    if (!this._localDependencyProjects) {
+      this._localDependencyProjects = [
+        ...this._getLocalDependencyProjects(this.packageJson.dependencies),
+        ...this._getLocalDependencyProjects(this.packageJson.devDependencies),
+        ...this._getLocalDependencyProjects(this.packageJson.optionalDependencies)
+      ];
+    }
+    return this._localDependencyProjects;
   }
 
   /**
@@ -302,5 +325,36 @@ export class RushConfigurationProject {
       }
     }
     return isMain;
+  }
+
+  private _getLocalDependencyProjects(
+    dependencies: IPackageJsonDependencyTable = {}
+  ): RushConfigurationProject[] {
+    const localDependencyProjects: RushConfigurationProject[] = [];
+    for (const dependency of Object.keys(dependencies)) {
+      // Skip if we can't find the local project or it's a cyclic dependency
+      const localProject: RushConfigurationProject | undefined = this._rushConfiguration.getProjectByName(
+        dependency
+      );
+      if (localProject && !this._cyclicDependencyProjects.has(dependency)) {
+        // Set the value if it's a workspace project, or if we have a local project and the semver is satisfied
+        const dependencySpecifier: DependencySpecifier = new DependencySpecifier(
+          dependency,
+          dependencies[dependency]
+        );
+        switch (dependencySpecifier.specifierType) {
+          case DependencySpecifierType.Version:
+          case DependencySpecifierType.Range:
+            if (semver.satisfies(localProject.packageJson.version, dependencySpecifier.versionSpecifier)) {
+              localDependencyProjects.push(localProject);
+            }
+            break;
+          case DependencySpecifierType.Workspace:
+            localDependencyProjects.push(localProject);
+            break;
+        }
+      }
+    }
+    return localDependencyProjects;
   }
 }

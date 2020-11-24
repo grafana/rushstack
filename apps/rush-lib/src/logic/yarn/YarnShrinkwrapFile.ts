@@ -1,10 +1,27 @@
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
+
 import * as os from 'os';
-import * as lockfile from '@yarnpkg/lockfile';
 import { BaseShrinkwrapFile } from '../base/BaseShrinkwrapFile';
-import { FileSystem, IParsedPackageNameOrError, InternalError } from '@rushstack/node-core-library';
+import { FileSystem, IParsedPackageNameOrError, InternalError, Import } from '@rushstack/node-core-library';
 import { RushConstants } from '../RushConstants';
 import { DependencySpecifier } from '../DependencySpecifier';
 import { PackageNameParsers } from '../../api/PackageNameParsers';
+
+/**
+ * @yarnpkg/lockfile doesn't have types
+ */
+// eslint-disable-next-line
+declare module YarnPkgLockfileTypes {
+  export class ParseResult {
+    public object: IYarnShrinkwrapJson;
+  }
+
+  export function parse(shrinkwrapJson: string): ParseResult;
+
+  export function stringify(shrinkwrap: IYarnShrinkwrapJson): string;
+}
+const lockfileModule: typeof YarnPkgLockfileTypes = Import.lazy('@yarnpkg/lockfile', require);
 
 /**
  * Used with YarnShrinkwrapFile._encodePackageNameAndSemVer() and _decodePackageNameAndSemVer().
@@ -143,19 +160,19 @@ export class YarnShrinkwrapFile extends BaseShrinkwrapFile {
 
   public static loadFromFile(shrinkwrapFilename: string): YarnShrinkwrapFile | undefined {
     let shrinkwrapString: string;
-    let shrinkwrapJson: lockfile.ParseResult;
+    let shrinkwrapJson: YarnPkgLockfileTypes.ParseResult;
     try {
       if (!FileSystem.exists(shrinkwrapFilename)) {
         return undefined; // file does not exist
       }
 
       shrinkwrapString = FileSystem.readFile(shrinkwrapFilename);
-      shrinkwrapJson = lockfile.parse(shrinkwrapString);
+      shrinkwrapJson = lockfileModule.parse(shrinkwrapString);
     } catch (error) {
       throw new Error(`Error reading "${shrinkwrapFilename}":` + os.EOL + `  ${error.message}`);
     }
 
-    return new YarnShrinkwrapFile(shrinkwrapJson.object as IYarnShrinkwrapJson);
+    return new YarnShrinkwrapFile(shrinkwrapJson.object);
   }
 
   /**
@@ -232,7 +249,7 @@ export class YarnShrinkwrapFile extends BaseShrinkwrapFile {
 
   /** @override */
   protected serialize(): string {
-    return lockfile.stringify(this._shrinkwrapJson);
+    return lockfileModule.stringify(this._shrinkwrapJson);
   }
 
   /** @override */
@@ -244,6 +261,24 @@ export class YarnShrinkwrapFile extends BaseShrinkwrapFile {
   protected tryEnsureDependencyVersion(
     dependencySpecifier: DependencySpecifier,
     tempProjectName: string
+  ): DependencySpecifier | undefined {
+    throw new InternalError('Not implemented');
+  }
+
+  /** @override */
+  public getWorkspaceKeys(): ReadonlyArray<string> {
+    throw new InternalError('Not implemented');
+  }
+
+  /** @override */
+  public getWorkspaceKeyByPath(workspaceRoot: string, projectFolder: string): string {
+    throw new InternalError('Not implemented');
+  }
+
+  /** @override */
+  protected getWorkspaceDependencyVersion(
+    dependencySpecifier: DependencySpecifier,
+    workspaceKey: string
   ): DependencySpecifier | undefined {
     throw new InternalError('Not implemented');
   }
