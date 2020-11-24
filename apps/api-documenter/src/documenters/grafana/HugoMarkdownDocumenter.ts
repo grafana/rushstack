@@ -828,7 +828,7 @@ export class HugoMarkdownDocumenter {
     ]);
   }
 
-  private _getFilenameForApiItem(apiItem: ApiItem): string {
+  private _getFilenameForApiItem(apiItem: ApiItem, useRel: boolean = false): string {
     if (apiItem.kind === ApiItemKind.Model) {
       return '_index.md';
     }
@@ -874,11 +874,14 @@ export class HugoMarkdownDocumenter {
       }
     }
 
-    return `${relativeToRoot}${baseName}${suffix}`;
+    if (useRel) {
+      return `${relativeToRoot}${baseName}${suffix}`;
+    }
+    return `${baseName}${suffix}`;
   }
 
   private _getLinkFilenameForApiItem(apiItem: ApiItem): string {
-    const fileName: string = this._getFilenameForApiItem(apiItem);
+    const fileName: string = this._getFilenameForApiItem(apiItem, true);
 
     if (fileName.startsWith('../')) {
       return fileName;
