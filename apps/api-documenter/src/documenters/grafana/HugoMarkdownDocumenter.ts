@@ -866,9 +866,6 @@ export class HugoMarkdownDocumenter {
           baseName += `/#${qualifiedName}-method`;
           suffix = '';
           break;
-        case ApiItemKind.Enum:
-          relativeToRoot = `../${relativeToRoot}`;
-          break;
         default:
           relativeToRoot = `../${relativeToRoot}`;
           baseName += '/' + qualifiedName;
